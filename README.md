@@ -10,8 +10,12 @@ This Repository is mandatory for the course mentioned in the title. Weekly lectu
   - [ ] Person 2
   - [ ] Person 3
   - [ ] Person 4
-- [ ] 
-m
+- [x] Split Gillespie Example into functions for easier understanding
+- [x] Transform Project Goals into easy-to-understand formulas
+- [ ] Decide how to define the constants
+  - [ ] Look into [Paper](https://journals.plos.org/ploscompbiol/article?id=10.1371/journal.pcbi.1001101) explaining the project
+
+
 ## Project (Gillespie Simulation)
 Stochastic chemical reactions.
 The Gillespie algorithm is a stochastic simulation algorithm used to simulate the time evolution of a well-mixed system of chemical species. It is often used in the fields of systems biology and biochemistry. The algorithm is named after Daniel T. Gillespie.
