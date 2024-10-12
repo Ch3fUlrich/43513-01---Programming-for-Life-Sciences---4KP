@@ -11,9 +11,27 @@ This Repository is mandatory for the course mentioned in the title. Weekly lectu
   - [ ] Person 3
   - [ ] Person 4
 - [x] Split Gillespie Example into functions for easier understanding
-- [x] Transform Project Goals into easy-to-understand formulas
-- [ ] Decide how to define the constants
-  - [ ] Look into [Paper](https://journals.plos.org/ploscompbiol/article?id=10.1371/journal.pcbi.1001101) explaining the project
+- [x] Transform Project Goals into easy-to-understand formulas [Better Description](#better-description)
+- [ ] Look into [Paper](https://journals.plos.org/ploscompbiol/article?id=10.1371/journal.pcbi.1001101) explaining the project
+- [ ] Implement functions for rules found in [Better Description](#better-description)
+  - [ ] Expression
+    - [ ] General expression function for functions below
+    - [ ] transcription
+    - [ ] translation
+    - [ ] decay
+    - [ ] complex formation
+    - [ ] complex decay
+  - [ ] Loop parts
+    - [ ] general define_rate function
+    - [ ] define_miRNA_activation_rate (wraps define_rate)
+    - [ ] define_mRNA_activation_rate (wraps define_rate)
+  - [ ] Glippsie
+    - [ ] Combine all functions into one Gillespie function for 1 iteration
+    - [ ] Wrapper for Gillespie function to run multiple iterations
+    - [ ] Wrapper for Gillespie function to run multiple iterations with multiple runs (rajectories)
+  - [ ] Plotting
+    - [ ] Plotting function for single run
+    - [ ] Plotting function for the results of the Gillespie function
 
 
 ## Project (Gillespie Simulation)
@@ -53,6 +71,18 @@ Write the code for a Gillespie simulation of the miRNA-TF-target protein FFL. Th
 - target protein decay at rate $\mu_R$
 - free target mRNA binds the miRNA at rate $\beta$ to make a mRNA-miRNA complex
 - mRNA-miRNA complex falls apart at rate $\mu_C$, with the mRNA being lost and the miRNA recycled. 
+
+#### Better Description
+- TF transcription and decay: $\emptyset \xrightleftharpoons[\mu_T]{\alpha_T} TF_{mRNA}$
+- TF translation and decay: $TF_{mRNA} \xrightarrow{\pi_T} TF_{protein} \xrightarrow{\mu_Q} \emptyset$
+- miRNA production at rate $\alpha_S(q) = \alpha_S \frac{q}{q+K_S}$
+- miRNA production and decay: $\emptyset \xrightleftharpoons[\mu_S]{\alpha_S(q)} miRNA$
+- target mRNA transcription at rate $\alpha_R(Q) = \alpha_R \frac{q}{q+K_R}$
+- Target mRNA transcription and decay: $\emptyset \xrightleftharpoons[\mu_R]{\alpha_R(q)} mRNA$
+- Target protein translation and decay: $mRNA \xrightarrow{\pi_R} Protein \xrightarrow{\mu_R} \emptyset$
+- miRNA-mediated mRNA degradation: 
+  
+  $$miRNA + mRNA \xrightleftharpoons[\mu_C]{\beta} RNA_{complex}\xrightarrow{} miRNA$$
 
 ### Method
 #### Gillespie Algorithm
