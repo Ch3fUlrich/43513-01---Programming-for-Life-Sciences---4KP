@@ -111,27 +111,17 @@ So, to simulate this system we can repeat the following steps:
    
 We have a few more details to sort out, namely how we pick the time and the reaction that takes place at a given step. First, picking which reaction should take place: it is quite intuitive to see that if we view the rates of the reactions as segments of corresponding lengths, line up all the segments next to each other into an interval, and then, when we want to sample reactions, we blindly pick points in the interval (*using the numpy.random.random()* method, which gives us values distributed uniformly in the [0,1] interval), the fraction of times we will land in the segment corresponding to a particular reaction is given by the relative length of that segment in the interval (see figure below).
 
-#### Assumptions
-The algorithm is based on the following assumptions:
-The system
-- is well-mixed.
-- has constant volume constant.
-- number of molecules of each species is large enough to be treated as a continuous quantity.
-- reaction rates are constant.
-- reactions are deterministic and follow mass action kinetics.
-- time between reactions is exponentially distributed.
-- probability of a reaction occurring in a small time interval is 
-  - proportional to the reaction rate and the number of reactant molecules.
-  - independent of the 
-    - time since the last reaction.
-    - number of other 
-      - molecules in the system.
-      - reactions that could occur.
-    - order of the reactions.
-    - the volume of the system.
-    - the size of the time step.
-
 ## Lectures
 - Lecture 1: Gillespie Project explanation
-- Lecture 2: Review Python
-- Lecture 3: 
+- Lecture 2: Python basics
+- Lecture 3: Algorithm design
+- Lecture 4: Task design
+- Lecture 5: Version control
+- Lecture 6: Documentation
+- Lecture 7: Encapsulation & packaging
+- Lecture 8: Repo, executable & docs
+- Lecutre 9: Linting, testing & continuous integration
+- Lecture 10: Dependency management & contrainerization
+- Lecture 11: Final
+- Lecture 12: Workflows / Nextflow
+- Lecture 13: Wrap up
