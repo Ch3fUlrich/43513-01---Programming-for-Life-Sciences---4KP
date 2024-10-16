@@ -13,18 +13,21 @@ This Repository is mandatory for the course mentioned in the title. Weekly lectu
 - [x] Split Gillespie Example into functions for easier understanding
 - [x] Transform Project Goals into easy-to-understand formulas [Better Description](#better-description)
 - [ ] Look into [Paper](https://journals.plos.org/ploscompbiol/article?id=10.1371/journal.pcbi.1001101) explaining the project
+  - [ ] extract constants from paper
 - [ ] Implement functions for rules found in [Better Description](#better-description)
-  - [ ] Expression
-    - [ ] General expression function for functions below
-    - [ ] transcription
-    - [ ] translation
-    - [ ] decay
-    - [ ] complex formation
-    - [ ] complex decay
-  - [ ] Loop parts
-    - [ ] general define_rate function
-    - [ ] define_miRNA_activation_rate (wraps define_rate)
-    - [ ] define_mRNA_activation_rate (wraps define_rate)
+  - [ ] create Classes with functions
+    - [ ] MoleculeLike
+      - [x] General expression function for functions below
+      - [x] add molecules using operator overloading
+      - [x] substract molecules using operator overloading
+      - [x] general creation_rate function for molecules created from nothing
+    - [ ] Molecule
+      - [x] transcription
+      - [x] translation
+      - [x] decay
+    - [ ] Complex
+      - [x] complex degradation
+      - [ ] complex formation
   - [ ] Glippsie
     - [ ] Combine all functions into one Gillespie function for 1 iteration
     - [ ] Wrapper for Gillespie function to run multiple iterations
@@ -32,6 +35,7 @@ This Repository is mandatory for the course mentioned in the title. Weekly lectu
   - [ ] Plotting
     - [ ] Plotting function for single run
     - [ ] Plotting function for the results of the Gillespie function
+  - [ ] Write tests for automated testing
 
 
 ## Project (Gillespie Simulation)

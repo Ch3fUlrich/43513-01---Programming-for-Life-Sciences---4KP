@@ -9,7 +9,8 @@ def gillespi_simulation(N_A:int,
                         rb:float=1.0,
                         steps:int=100):
     """
-    
+    Run a Gillespi simulation for multiple steps.
+
     Parameters:
     N_A: int
         Initial number of A molecules
@@ -20,9 +21,7 @@ def gillespi_simulation(N_A:int,
     T: int
         Time of simulation
     steps: int
-        Number of steps
-    trajectories: int
-
+        Number of steps    
     """
     # Set up data arrays
     N_A_steps = np.zeros(steps+1)
