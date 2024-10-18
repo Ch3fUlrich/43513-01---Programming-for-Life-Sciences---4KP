@@ -1,0 +1,35 @@
+
+time: 0 # initial time
+
+TF_mRNA: #w
+  count: 0
+  translation_rate: 0.1 # mü_T into protein
+  decay_rate: 0.1 # mü_T decay into nothing
+  transcription_rate: 0.1 # alpha_T 
+  alpha_constant: True # alpha_T is constant
+
+TF_protein: #q
+  count: 0 
+  decay_rate: 0.1 # mü_Q decay into nothing
+
+miRNA: #s
+  count: 0
+  transcription_rate: 0.1 # alpha_S production rate
+  decay_rate: 0.1 # mü_S decay rate
+  k: 0.1 # k_S for transcription rate calculation
+
+mRNA: #r
+  count: 0
+  translation_rate: 0.1 # mü_R into protein
+  transcription_rate: 0.1 # alpha_R production rate
+  decay_rate: 0.1 # mü_R decay rate
+  k: 0.1 # k_R for transcription rate calculation
+
+protein: #p
+  count: 0
+  decay_rate: 0.1 # mü_R decay rate
+
+complex: #c
+  count: 0
+  formation_rate: 0.1 # beta formation rate from miRNA and mRNA
+  decay_rate: 0.1 # mü_C decay rate into miRNA
