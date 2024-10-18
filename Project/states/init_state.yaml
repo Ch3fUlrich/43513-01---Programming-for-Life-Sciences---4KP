@@ -3,33 +3,34 @@ time: 0 # initial time
 
 TF_mRNA: #w
   count: 0
-  translation_rate: 0.1 # mü_T into protein
-  decay_rate: 0.1 # mü_T decay into nothing
-  transcription_rate: 0.1 # alpha_T 
+  translation_rate: 0.04 #s^-1 pi_T into protein
+  decay_rate: 0.006 #s^-1 mü_T decay into nothing
+  transcription_rate: 0.06 #s^-1 alpha_T  transcription from 0 to TF_mRNA
   alpha_constant: True # alpha_T is constant
 
 TF_protein: #q
   count: 0 
-  decay_rate: 0.1 # mü_Q decay into nothing
+  decay_rate: 0.002 #s^-1 mü_Q decay into nothing
 
 miRNA: #s
   count: 0
-  transcription_rate: 0.1 # alpha_S production rate
-  decay_rate: 0.1 # mü_S decay rate
-  k: 0.1 # k_S for transcription rate calculation
+  transcription_rate: 0.5 #s^-1 = alpha_S transcription from 0 to miRNA - upper bound
+  decay_rate: 0.006 #s^-1 mü_S decay rate
+  k: 200 # k_S for transcription rate calculation (TF activation, complex dissociation constants)
 
 mRNA: #r
   count: 0
-  translation_rate: 0.1 # mü_R into protein
-  transcription_rate: 0.1 # alpha_R production rate
-  decay_rate: 0.1 # mü_R decay rate
-  k: 0.1 # k_R for transcription rate calculation
+  translation_rate: 0.04 #s^-1 pi_R into protein
+  transcription_rate: 0.8 #s^-1 alpha_R transcription from 0 to mRNA - upper bound
+  decay_rate: 0.006 #s^-1 mü_R decay rate
+  k: 200 # k_R for transcription rate calculation (TF activation, complex dissociation constants)
 
 protein: #p
   count: 0
-  decay_rate: 0.1 # mü_R decay rate
+  decay_rate: 0.002 #s^-1 mü_R decay rate
 
 complex: #c
   count: 0
+  # variables below are not based on paper
   formation_rate: 0.1 # beta formation rate from miRNA and mRNA
   decay_rate: 0.1 # mü_C decay rate into miRNA
