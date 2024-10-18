@@ -88,6 +88,8 @@ Write the code for a Gillespie simulation of the miRNA-TF-target protein FFL. Th
   
   $$miRNA + mRNA \xrightleftharpoons[\mu_C]{\beta} RNA_{complex}\xrightarrow{} miRNA$$
 
+<img src="Images/miRNA-interference_scheme.png" alt="miRNA-interference_scheme" width="270"/>
+
 ### Method
 #### Gillespie Algorithm
 Let us illustrate the algorithm on a very simple system of a reversible dimerization reaction involving two monomers, **A** and **B**. The reactions then are:
