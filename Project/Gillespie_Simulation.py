@@ -106,7 +106,7 @@ class State:
             molecules: dict
 
         """
-        if not isinstance(path, str) or not isinstance(path, Path):
+        if not isinstance(path, str) and not isinstance(path, Path):
             raise ValueError("Path must be a string or Path object")
         assert Path(path).suffix == '.yaml', "File must be a yaml file"
 
@@ -173,7 +173,6 @@ class State:
                 The time step
         """
         #TODO: Implement the next state method
-        ...
         raise NotImplementedError("Subclasses must implement next_state method")
     
     def extract_molecule_counts(self) -> List[int]:
@@ -245,7 +244,9 @@ class MoleculeLike:
         return other_molecule
     
 class Molecule(MoleculeLike):
-    def __init__(self, molecule:int, 
+    def __init__(self, 
+                 name:str,
+                 molecule:int, 
                  translation_rate:float=None, 
                  decay_rate:float=None, 
                  transcription_rate:float=None,
@@ -271,7 +272,7 @@ class Molecule(MoleculeLike):
             c: float
                 Hill coefficient for fixing steepness of the activation curve. Default value is 1 for linear activation
         """
-        super().__init__(molecule)
+        super().__init__(name, molecule)
         self.translation_rate = translation_rate
         self.decay_rate = decay_rate
         self.transcription_rate = transcription_rate
@@ -346,7 +347,12 @@ class Molecule(MoleculeLike):
         return self.express(self.translation_rate, dt)
 
 class Complex(MoleculeLike):
-    def __init__(self, num_complex:int, molecules_per_complex:List[int], degradation_rate:int=None, formation_rate:int=None):
+    def __init__(self, 
+                 name:str,
+                 num_complex:int, 
+                 molecules_per_complex:List[int], 
+                 degradation_rate:int=None, 
+                 formation_rate:int=None):
         """
         A complex object in a cell
 
@@ -363,7 +369,7 @@ class Complex(MoleculeLike):
         Returns:
             int: The number of molecules left after degradation
         """
-        super().__init__(num_complex)
+        super().__init__(name, num_complex)
         self.molecules_per_complex = molecules_per_complex
         self.degradation_rate = degradation_rate
         self.formation_rate = formation_rate
@@ -407,3 +413,17 @@ class Complex(MoleculeLike):
         self.molecule += formed_complexes
         other_molecules = np.array(molecules) - np.array(self.molecules_per_complex) * formed_complexes
         return self.molecule, other_molecules
+
+def construct_path(path:str=None, fname:str=None) -> str:
+    """
+    Construct the path to the file. If the path is not provided, the current working directory is used.
+
+    Parameters:
+
+    """
+    path = path or Path.cwd()
+    fname = fname or "init_state.yaml"
+    fpath = Path(path).joinpath("states", fname)
+    if fpath.suffix != ".yaml":
+        raise ValueError("File must be a yaml file")
+    return fpath
