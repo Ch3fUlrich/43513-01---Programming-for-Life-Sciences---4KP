@@ -14,7 +14,7 @@ import yaml
 from pathlib import Path
 
 class State_Machine:
-    def __init__(self, innit_state_path:str, dt:int=1):
+    def __init__(self, innit_state_path:str=None, state=None, dt:int=1):
         """
         A state machine object in a cell.
 
@@ -24,8 +24,13 @@ class State_Machine:
             dt: int
                 The time step
         """
-        self.path = Path(innit_state_path).parent
-        self.state = State(innit_state_path)
+        if innit_state_path and state is not None:
+            raise ValueError("init_state_path and state cannot be provided at the same")
+        if innit_state_path:
+            self.state = State(innit_state_path)
+        else:
+            self.state = state
+        self.path = self.state.path
         self.dt = dt
         self.times = None
         self.count_counts = None
@@ -91,7 +96,17 @@ class State_Machine:
         """
         Plot the state of the cell.
         """
-        plt.plot(self.times, self.count_counts)
+
+        for molecule in self.state.molecules:
+            #average over trajectories + confidence intervals
+            avg_counts = np.mean(self.count_counts, axis=0)
+            std_counts = np.std(self.count_counts, axis=0)
+            plt.plot(self.times, molecule.counts, label=molecule.name)
+            plt.fill_between(self.times, avg_counts-std_counts, avg_counts+std_counts, alpha=0.5)
+        
+        plt.xlabel("Time")
+        plt.ylabel("Molecule count")
+        plt.legend()
         plt.show()
         raise NotImplementedError("optimie the plot method")
 
