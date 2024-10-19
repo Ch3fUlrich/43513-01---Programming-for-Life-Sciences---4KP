@@ -6,7 +6,7 @@ TF_mRNA: #w
   translation_rate: 0.04 #s^-1 pi_T into protein
   decay_rate: 0.006 #s^-1 mü_T decay into nothing
   transcription_rate: 0.06 #s^-1 alpha_T  transcription from 0 to TF_mRNA
-  alpha_constant: True # alpha_T is constant
+  transcription_rate_constant: True # alpha_T is constant
 
 TF_protein: #q
   count: 0 
@@ -31,6 +31,10 @@ protein: #p
 
 complex: #c
   count: 0
+  molecules_per_complex: [1, 1] # number of molecules in the complex
+  
+  #The paper uses a repressive Hill function for the miRNA-mRNA complex.
+  #From the looks of the project goal, we're supposed to simulate a separate complex formation and dissociation.
   # variables below are not based on paper
   formation_rate: 0.1 # beta formation rate from miRNA and mRNA
-  decay_rate: 0.1 # mü_C decay rate into miRNA
+  degradation_rate: 0.1 # mü_C decay rate into miRNA

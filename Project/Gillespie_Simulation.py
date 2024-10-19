@@ -28,7 +28,7 @@ class State_Machine:
         self.state = State(innit_state_path)
         self.dt = dt
         self.times = None
-        self.molecule_counts = None
+        self.count_counts = None
 
     def save_runs(self, molecule_counts:np.ndarray, fname:str=None, path:str=None):
         """
@@ -54,7 +54,7 @@ class State_Machine:
         """
         self.state = State(self.state.path)
         self.times = None
-        self.molecule_counts = None
+        self.count_counts = None
 
     def run(self, steps:int=100, trajectories:int=100, save=True, 
             saven_fname:str=None, save_path:str=None):
@@ -91,7 +91,7 @@ class State_Machine:
         """
         Plot the state of the cell.
         """
-        plt.plot(self.times, self.molecule_counts)
+        plt.plot(self.times, self.count_counts)
         plt.show()
         raise NotImplementedError("optimie the plot method")
 
@@ -157,12 +157,17 @@ class State:
         Create the molecule objects in the cell.
         """
         molecules = []
-        for key, value in self.state_dict.items():
-            if key != "time":
-                molecules.append(Molecule(value))
-                #TODO: molecule object creation need to be automated
-                raise ValueError("Molecule type not recognized")
+        for name, values in self.state_dict.items():
+            if name == "time":
+                continue
+        
+            molecule_dict = self.state_dict[name]
+            if name == "complex":
+                molecules.append(Complex(name=name, **molecule_dict))
+            else:
+                molecules.append(Molecule(name=name, **molecule_dict))
         return molecules
+
 
     def next_state(self, dt:int=1):
         """
@@ -175,26 +180,53 @@ class State:
         #TODO: Implement the next state method
         raise NotImplementedError("Subclasses must implement next_state method")
     
-    def extract_molecule_counts(self) -> List[int]:
+    def extract_molecule_counts(self, as_dict:bool=False) -> List[int]:
         """
         Extract the number of molecules in the cell.
 
         Returns:
             List[int]: The number of molecules in the cell
         """
-        counts = [molecule.molecule for molecule in self.molecules]
+        if as_dict:
+            counts = {molecule.name: molecule.count for molecule in self.molecules}
+        else:
+            counts = [molecule.molecule for molecule in self.molecules]
         return counts
+    
+    def print(self, full:bool=False):
+        """
+        Print the state of the cell.
+
+        Parameters:
+            full: bool
+                If True, print the full state of the cell
+        """
+        current_time = self.state_dict["time"]
+        print("------------------------")
+        print(f"State(t={current_time})")
+        if full:
+            for name, key_values in self.state_dict.items():
+                if isinstance(key_values, dict):
+                    print(f"- {name}:")
+                    for attribute, value in key_values.items():
+                        print(f"   - {attribute}: {value}")
+                else:
+                    print(f"- {name}: {key_values}")
+
+        else:
+            for molecule in self.molecules:
+                print(f"-> {molecule.name}: {molecule.count}")
 
 class MoleculeLike:
-    def __init__(self, name:str, molecule:int):
+    def __init__(self, name:str, count:int):
         """
         A molecule like object in a cell
         Parameters:
-            molecule: int
+            count: int
                 The number of molecules
         """ 
         self.name = name
-        self.molecule = molecule
+        self.count = count
 
     def __add__(self, molecule_change:int) -> int:
         """
@@ -203,8 +235,8 @@ class MoleculeLike:
         Returns:
             int: The number of molecules left after addition
         """
-        self.molecule += molecule_change
-        return self.molecule
+        self.count += molecule_change
+        return self.count
     
     def __sub__(self, molecule_change:int) -> int:
         """
@@ -213,8 +245,8 @@ class MoleculeLike:
         Returns:
             int: The number of molecules left after subtraction
         """
-        self.molecule -= molecule_change
-        return self.molecule
+        self.count -= molecule_change
+        return self.count
     
     def create_molecule_dict(self) -> dict:
         """
@@ -240,13 +272,13 @@ class MoleculeLike:
         """
         # Default time step is 1
         dt = dt or 1
-        other_molecule = self.molecule * expression_rate * dt
-        return other_molecule
+        other_count = self.count * expression_rate * dt
+        return other_count
     
 class Molecule(MoleculeLike):
     def __init__(self, 
                  name:str,
-                 molecule:int, 
+                 count:int, 
                  translation_rate:float=None, 
                  decay_rate:float=None, 
                  transcription_rate:float=None,
@@ -272,7 +304,7 @@ class Molecule(MoleculeLike):
             c: float
                 Hill coefficient for fixing steepness of the activation curve. Default value is 1 for linear activation
         """
-        super().__init__(name, molecule)
+        super().__init__(name, count)
         self.translation_rate = translation_rate
         self.decay_rate = decay_rate
         self.transcription_rate = transcription_rate
@@ -314,8 +346,8 @@ class Molecule(MoleculeLike):
         """
         # Default time step is 1
         dt = dt or 1
-        self.molecule = self.express(-self.decay_rate, dt)
-        return self.molecule
+        self.count = self.express(-self.decay_rate, dt)
+        return self.count
     
     def transcription(self, protein:int, dt:int=None) -> int:
         """
@@ -349,7 +381,7 @@ class Molecule(MoleculeLike):
 class Complex(MoleculeLike):
     def __init__(self, 
                  name:str,
-                 num_complex:int, 
+                 count:int, 
                  molecules_per_complex:List[int], 
                  degradation_rate:int=None, 
                  formation_rate:int=None):
@@ -357,7 +389,7 @@ class Complex(MoleculeLike):
         A complex object in a cell
 
         Parameters:
-            num_complex: int
+            count: int
                 The number of complexes
             molecules_per_complex: List[int]
                 The number of molecules needed to form the complex
@@ -369,7 +401,7 @@ class Complex(MoleculeLike):
         Returns:
             int: The number of molecules left after degradation
         """
-        super().__init__(name, num_complex)
+        super().__init__(name, count)
         self.molecules_per_complex = molecules_per_complex
         self.degradation_rate = degradation_rate
         self.formation_rate = formation_rate
@@ -384,9 +416,9 @@ class Complex(MoleculeLike):
         Returns:
             int: The number of molecules left after degradation
         """
-        self.molecule = self.express(-self.degradation_rate, dt)
-        other_molecule = self.molecule
-        return self.molecule, other_molecule
+        self.count = self.express(-self.degradation_rate, dt)
+        other_count = self.count
+        return self.count, other_count
     
     def formation(self, molecules:List[int], dt:int=None) -> List[int]:
         """
@@ -410,9 +442,9 @@ class Complex(MoleculeLike):
         # Default number of molecules is 1 for each molecule
         num_possible_new_complexes = min([molecule // self.molecules_per_complex for molecule in molecules])
         formed_complexes = num_possible_new_complexes * self.formation_rate * dt
-        self.molecule += formed_complexes
-        other_molecules = np.array(molecules) - np.array(self.molecules_per_complex) * formed_complexes
-        return self.molecule, other_molecules
+        self.count += formed_complexes
+        other_counts = np.array(molecules) - np.array(self.molecules_per_complex) * formed_complexes
+        return self.count, other_counts
 
 def construct_path(path:str=None, fname:str=None) -> str:
     """
