@@ -216,6 +216,8 @@ class State:
         else:
             for molecule in self.molecules:
                 print(f"-> {molecule.name}: {molecule.count}")
+                # plotting the full molecule objects is too verbose
+                #print(f"-> {molecule.name}: {molecule.__dict__}")
 
 class MoleculeLike:
     def __init__(self, name:str, count:int):
