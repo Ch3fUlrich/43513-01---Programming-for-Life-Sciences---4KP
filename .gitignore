@@ -2,3 +2,5 @@
 /.venv
 .conda
 *__pycache__
+*molecule_counts*.npy
+*logs
