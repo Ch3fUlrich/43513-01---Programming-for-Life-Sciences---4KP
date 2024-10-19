@@ -1,5 +1,5 @@
 # type hints
-from typing import List
+from typing import List, Dict
 
 # calculation
 import numpy as np
@@ -12,6 +12,9 @@ from tqdm import trange
 # loading files
 import yaml
 from pathlib import Path
+
+# copy
+import copy
 
 class State_Machine:
     def __init__(self, innit_state_path:str=None, state=None, dt:int=1):
@@ -30,7 +33,7 @@ class State_Machine:
             self.state = State(innit_state_path)
         else:
             self.state = state
-        self.path = self.state.path
+        self.path = self.state.path.parent
         self.dt = dt
         self.times = None
         self.count_counts = None
@@ -48,7 +51,7 @@ class State_Machine:
                 The path to save the file
         """
         # Default file name
-        fname = fname+".npy" or "molecule_counts.npy"
+        fname = fname or "molecule_counts"
         path = path or self.path
         fpath = Path(path).joinpath(fname)
         np.save(fpath, molecule_counts)
@@ -59,7 +62,7 @@ class State_Machine:
         """
         self.state = State(self.state.path)
         self.times = None
-        self.count_counts = None
+        self.molecule_counts = None
 
     def run(self, steps:int=100, trajectories:int=100, save=True, 
             saven_fname:str=None, save_path:str=None):
@@ -79,7 +82,7 @@ class State_Machine:
                 The path to save the results
         """
         n_molecules = len(self.state.molecules)
-        molecule_counts = np.array((trajectories, steps+1, n_molecules))
+        molecule_counts = np.zeros((trajectories, steps+1, n_molecules))
         times = np.zeros((trajectories, steps+1))
         for i in trange(trajectories):
             for j in trange(steps):
@@ -90,25 +93,29 @@ class State_Machine:
             if not saven_fname:
                 saven_fname = f"molecule_counts_{steps}_{trajectories}.npy"
             self.save_runs(molecule_counts, fname=saven_fname, path=save_path)
-        return molecule_counts
+        self.molecule_counts = molecule_counts
+        self.times = times
+        return self.molecule_counts
 
     def plot(self):
         """
         Plot the state of the cell.
         """
 
-        for molecule in self.state.molecules:
-            #average over trajectories + confidence intervals
-            avg_counts = np.mean(self.count_counts, axis=0)
-            std_counts = np.std(self.count_counts, axis=0)
-            plt.plot(self.times, molecule.counts, label=molecule.name)
-            plt.fill_between(self.times, avg_counts-std_counts, avg_counts+std_counts, alpha=0.5)
+        #average over trajectories + confidence intervals
+        avg_counts = np.mean(self.molecule_counts, axis=0)
+        std_counts = np.std(self.molecule_counts, axis=0)
+        mean_times = np.mean(self.times, axis=0)
+        for molecule_num, (molecule_name, molecule) in enumerate(self.state.molecules.items()):
+            molecule_count = avg_counts[:, molecule_num]
+            molecule_std = std_counts[:, molecule_num]
+            plt.plot(mean_times, molecule_count, label=molecule_name)
+            plt.fill_between(mean_times, molecule_count-molecule_std, molecule_count+molecule_std, alpha=0.5)
         
         plt.xlabel("Time")
         plt.ylabel("Molecule count")
         plt.legend()
         plt.show()
-        raise NotImplementedError("optimie the plot method")
 
 class State:
     def __init__(self, path:str):
@@ -128,7 +135,7 @@ class State:
         self.path = Path(path)
         self.state_dict = self.load_state()
         self.time = self.state_dict["time"]
-        self.molecules:List = self.create_molecules()
+        self.molecules:Dict = self.create_molecules()
 
     def load_state(self) -> dict:
         """
@@ -160,7 +167,7 @@ class State:
                 If True, save the state to a yaml file
         """
         state_dict = {"time": t}
-        for molecule in self.molecules:
+        for molecule_name, molecule in self.molecules.items():
             molecule_dict = molecule.create_molecule_dict()
             state_dict.update(molecule_dict)
         if save:
@@ -171,16 +178,15 @@ class State:
         """
         Create the molecule objects in the cell.
         """
-        molecules = []
-        for name, values in self.state_dict.items():
+        molecules = {}
+        for name, molecule_dict in self.state_dict.items():
             if name == "time":
                 continue
         
-            molecule_dict = self.state_dict[name]
             if name == "complex":
-                molecules.append(Complex(name=name, **molecule_dict))
+                molecules[name] = Complex(name=name, **molecule_dict)
             else:
-                molecules.append(Molecule(name=name, **molecule_dict))
+                molecules[name] = Molecule(name=name, **molecule_dict)
         return molecules
 
 
@@ -193,7 +199,47 @@ class State:
                 The time step
         """
         #TODO: Implement the next state method
-        raise NotImplementedError("Subclasses must implement next_state method")
+        # 1. Update the time
+        self.state_dict["time"] += dt
+
+        # 2. Calculate changes in time for each molecule
+        m = copy.deepcopy(self.molecules)
+
+        # TF_mRNA
+        TF_mRNA_trancribed = m["TF_mRNA"].transcription(dt)
+        TF_mRNA_decayed = m["TF_mRNA"].decay(dt)
+        TF_mRNA_translated = m["TF_mRNA"].translation(dt)
+
+        # TF_protein
+        TF_protein_decayed = m["TF_protein"].decay(dt)
+
+        # miRNA
+        miRNA_trancribed = m["miRNA"].transcription(m["TF_protein"].count, dt)
+        miRNA_decayed = m["miRNA"].decay(dt)
+
+        # mRNA
+        mRNA_trancribed = m["mRNA"].transcription(m["TF_protein"].count, dt)
+        mRNA_decayed = m["mRNA"].decay(dt)
+        mRNA_translated = m["mRNA"].translation(dt)
+
+        # protein
+        protein_decayed = m["protein"].decay(dt)
+
+        # complex
+        formed_complex, used_molecules = m["complex"].formation([m["miRNA"].count, m["mRNA"].count], dt)
+        complex_degraded, created_molecule = m["complex"].degradation(dt)
+        
+        # 3. Update the number of molecules
+        m["TF_mRNA"] + TF_mRNA_trancribed - TF_mRNA_decayed
+        m["TF_protein"] + TF_mRNA_translated - TF_protein_decayed
+        m["miRNA"] + miRNA_trancribed - miRNA_decayed - used_molecules[0] + created_molecule
+        m["mRNA"] + mRNA_trancribed - mRNA_decayed - used_molecules[1]
+        m["protein"] + mRNA_translated - protein_decayed
+        m["complex"] + formed_complex - complex_degraded
+
+        self.molecules = m
+        self.create_state_dict(self.state_dict["time"], save=False)
+        return self
     
     def extract_molecule_counts(self, as_dict:bool=False) -> List[int]:
         """
@@ -203,9 +249,9 @@ class State:
             List[int]: The number of molecules in the cell
         """
         if as_dict:
-            counts = {molecule.name: molecule.count for molecule in self.molecules}
+            counts = {molecule_name: molecule.count for molecule_name, molecule in self.molecules.items()}
         else:
-            counts = [molecule.molecule for molecule in self.molecules]
+            counts = [molecule.count for molecule_name, molecule in self.molecules.items()]
         return counts
     
     def print(self, full:bool=False):
@@ -289,8 +335,9 @@ class MoleculeLike:
         """
         # Default time step is 1
         dt = dt or 1
-        other_count = self.count * expression_rate * dt
-        return other_count
+        count = self.count * expression_rate * dt
+        count_diff = count - self.count
+        return count_diff
     
 class Molecule(MoleculeLike):
     def __init__(self, 
@@ -363,10 +410,9 @@ class Molecule(MoleculeLike):
         """
         # Default time step is 1
         dt = dt or 1
-        self.count = self.express(-self.decay_rate, dt)
-        return self.count
+        return self.express(self.decay_rate, dt)
     
-    def transcription(self, protein:int, dt:int=None) -> int:
+    def transcription(self, protein:int=None, dt:int=None) -> int:
         """
         Transcription of a molecule over time
 
@@ -379,6 +425,8 @@ class Molecule(MoleculeLike):
         Returns:
             int: The number of molecules left after transcription
         """
+        if protein is None and not self.transcription_rate_constant:
+            raise ValueError("Protein must be provided for non-constant transcription rate")
         transcription_rate = self.transcription_rate if self.transcription_rate_constant else self.creation_rate(protein, self.k, self.c)
         return self.express(transcription_rate, dt)
 
@@ -433,9 +481,9 @@ class Complex(MoleculeLike):
         Returns:
             int: The number of molecules left after degradation
         """
-        self.count = self.express(-self.degradation_rate, dt)
-        other_count = self.count
-        return self.count, other_count
+        count = self.express(-self.degradation_rate, dt)
+        other_count = count
+        return count, other_count
     
     def formation(self, molecules:List[int], dt:int=None) -> List[int]:
         """
@@ -457,11 +505,10 @@ class Complex(MoleculeLike):
         # Default time step is 1
         dt = dt or 1
         # Default number of molecules is 1 for each molecule
-        num_possible_new_complexes = min([molecule // self.molecules_per_complex for molecule in molecules])
+        num_possible_new_complexes = min(np.array(molecules) // np.array(self.molecules_per_complex))
         formed_complexes = num_possible_new_complexes * self.formation_rate * dt
-        self.count += formed_complexes
-        other_counts = np.array(molecules) - np.array(self.molecules_per_complex) * formed_complexes
-        return self.count, other_counts
+        other_count_change = np.array(molecules) - np.array(self.molecules_per_complex) * formed_complexes
+        return formed_complexes, other_count_change
 
 def construct_path(path:str=None, fname:str=None) -> str:
     """
