@@ -91,7 +91,7 @@ def get_params_from_file(file_path: str) -> dict:
             key, value = line_split
 
             # converting value to number
-
+            value = float(value) if '.' in value else int(value)
 
             # assembling current dict
             current_dict = {key: value}
@@ -154,7 +154,8 @@ class ModuleProgressTracker(ProgressTracker):
             # updating progress string based on attributes
             progress_string += f'generating masks...'
             progress_string += f' {self.wheel_symbol}'
-            progress_string += f' | image: {self.current_iteration}/{self.iterations_num}'
+            progress_string += f' | step: {self.current_step}/{self.steps_num}'
+            progress_string += f' | trajectory: {self.current_trajectory}/{self.trajectories_num}'
             progress_string += f' | progress: {self.progress_percentage_str}'
             progress_string += f' | elapsed time: {self.elapsed_time_str}'
             progress_string += f' | ETC: {self.etc_str}'
@@ -175,14 +176,17 @@ class ModuleProgressTracker(ProgressTracker):
         # getting simulation params
         params_dict = get_params_from_file(file_path=params_path)
 
-        print(params_dict)
-        self.exit()
+        # getting steps/trajectories num
+        steps_num = params_dict['STEPS']
+        trajectories_num = params_dict['TRAJECTORIES']
 
-        # iterating over files
-        for _ in range(10):
+        # getting iterations num
+        iterations_num = steps_num * trajectories_num
 
-            # updating progress tracker attributes
-            self.iterations_num += 1
+        # updating progress tracker attributes
+        self.steps_num += steps_num
+        self.trajectories_num += trajectories_num
+        self.iterations_num += iterations_num
 
         # updating totals string
         totals_string = f'totals...'
@@ -198,38 +202,49 @@ class ModuleProgressTracker(ProgressTracker):
 # defining auxiliary functions
 
 
-def generate_segmentation_masks(input_folder: str,
-                                images_extension: str,
-                                output_folder: str,
-                                progress_tracker: ModuleProgressTracker
-                                ) -> None:
+def run_simulation(parameters_file: str,
+                   output_folder: str,
+                   progress_tracker: ModuleProgressTracker
+                   ) -> None:
     """
     Given a path to a folder containing
     binary masks, generates segmentation
     masks, saving output to given folder.
     """
-    # getting images in input folder
-    images = get_specific_files_in_folder(path_to_folder=input_folder,
-                                          extension=images_extension)
+    # getting simulation params
+    params_dict = get_params_from_file(file_path=parameters_file)
 
-    # iterating over images in input folder
-    for image_name in images:
+    # getting steps/trajectories num
+    steps_num = params_dict['STEPS']
+    trajectories_num = params_dict['TRAJECTORIES']
+
+    # getting steps range
+    steps_range = range(steps_num)
+
+    # iterating over steps
+    for step in steps_range:
 
         # updating progress tracker attributes
-        progress_tracker.current_iteration += 1
+        progress_tracker.current_step += 1
 
-        if progress_tracker.current_iteration < 24:
-            continue
+        # getting trajectories range
+        trajectories_range = range(trajectories_num)
 
-        # getting current image input/output paths
-        current_input_path = join(input_folder,
-                                  image_name)
-        current_output_path = join(output_folder,
-                                   image_name)
+        # resetting progress tracker attributes
+        progress_tracker.current_trajectory = 0
 
-        # generating segmentation mask for current image
-        generate_segmentation_mask(input_path=current_input_path,
-                                   output_path=current_output_path)
+        # iterating over trajectories
+        for trajectory in trajectories_range:
+
+            # updating progress tracker attributes
+            progress_tracker.current_trajectory += 1
+            progress_tracker.current_iteration += 1
+
+            # sleeping
+            progress_tracker.wait(0.2)
+
+            if progress_tracker.current_iteration == 10:
+                progress_tracker.exit()
 
 
 def parse_and_run(args_dict: dict,
@@ -239,20 +254,16 @@ def parse_and_run(args_dict: dict,
     Extracts args from args_dict
     and runs module function.
     """
-    # getting input folder
-    input_folder = args_dict['input_folder']
-
-    # getting image extension
-    images_extension = args_dict['images_extension']
+    # getting parameters file
+    parameters_file = args_dict['parameters_file']
 
     # getting output folder
     output_folder = args_dict['output_folder']
 
-    # running generate_segmentation_masks function
-    generate_segmentation_masks(input_folder=input_folder,
-                                images_extension=images_extension,
-                                output_folder=output_folder,
-                                progress_tracker=progress_tracker)
+    # running run_simulation function
+    run_simulation(parameters_file=parameters_file,
+                   output_folder=output_folder,
+                   progress_tracker=progress_tracker)
 
 ######################################################################
 # defining main function
@@ -270,7 +281,7 @@ def main():
 ######################################################################
 # running main function
 
-
+# python -m src.example01 -p .\src\configs\params.txt -o .\output
 if __name__ == '__main__':
     main()
 

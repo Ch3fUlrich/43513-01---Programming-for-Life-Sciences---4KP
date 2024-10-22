@@ -234,4 +234,18 @@ def enter_to_continue(skip: bool) -> None:
     input(enter_string)
 
 
+def get_number_string(num: int,
+                      digits: int = 2
+                      ) -> str:
+    """
+    Given a number, returns formatted
+    number with leading zeroes so that
+    the number of digits param is preserved.
+    """
+    # formating number string
+    number_string = f'{num:0{digits}d}'
+
+    # returning formatted number string
+    return number_string
+
 # end of current module

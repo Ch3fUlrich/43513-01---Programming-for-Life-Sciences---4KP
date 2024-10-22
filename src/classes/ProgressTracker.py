@@ -20,6 +20,7 @@ from psutil import virtual_memory
 from src.utils.aux_funcs import flush_string
 from src.utils.global_vars import UPDATE_TIME
 from src.utils.global_vars import MEMORY_LIMIT
+from src.utils.aux_funcs import get_number_string
 from src.utils.aux_funcs import enter_to_continue
 from src.utils.aux_funcs import print_execution_parameters
 
