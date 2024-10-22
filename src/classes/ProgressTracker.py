@@ -16,12 +16,10 @@ from threading import Event
 from os import _exit  # noqa
 from threading import Thread
 from psutil import cpu_percent
-from os import get_terminal_size
 from psutil import virtual_memory
 from src.utils.aux_funcs import flush_string
 from src.utils.global_vars import UPDATE_TIME
 from src.utils.global_vars import MEMORY_LIMIT
-from src.utils.aux_funcs import get_number_string
 from src.utils.aux_funcs import enter_to_continue
 from src.utils.aux_funcs import print_execution_parameters
 

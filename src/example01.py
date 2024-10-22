@@ -13,7 +13,7 @@ print('initializing...')  # noqa
 print('importing required libraries...')  # noqa
 from os.path import join
 from argparse import ArgumentParser
-from ProgressTracker import ProgressTracker
+from src.classes.ProgressTracker import ProgressTracker
 print('all required libraries successfully imported.')  # noqa
 
 #####################################################################
@@ -60,6 +60,47 @@ def get_args_dict() -> dict:
 
 #####################################################################
 # progress tracking related functions
+
+
+def get_params_from_file(file_path: str) -> dict:
+    """
+    Reads parameters file and returns
+    parameters stored in file as a dictionary.
+    """
+    # TODO: check how Sergej did with yaml files cause
+    #  doing it like text file is very dumb.
+    # defining placeholder value for params dict
+    params_dict = {}
+
+    # opening file in read mode
+    with open(file_path, 'r') as open_file:
+
+        # getting file lines
+        lines = open_file.readlines()
+
+        # iterating over lines
+        for line in lines:
+
+            # clearing line from "enter"
+            line = line.replace('\n', '')
+
+            # getting current line split
+            line_split = line.split('=')
+
+            # extracting values
+            key, value = line_split
+
+            # converting value to number
+
+
+            # assembling current dict
+            current_dict = {key: value}
+
+            # updating params dict
+            params_dict.update(current_dict)
+
+    # returning params dict
+    return params_dict
 
 
 class ModuleProgressTracker(ProgressTracker):
@@ -132,11 +173,13 @@ class ModuleProgressTracker(ProgressTracker):
         params_path = args_dict['parameters_file']
 
         # getting simulation params
-        # params = get_params_from_file(file_path=params_path)
-        images = [1, 2, 3]
+        params_dict = get_params_from_file(file_path=params_path)
+
+        print(params_dict)
+        self.exit()
 
         # iterating over files
-        for _ in images:
+        for _ in range(10):
 
             # updating progress tracker attributes
             self.iterations_num += 1
