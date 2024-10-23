@@ -205,7 +205,7 @@ class State:
                 The time step
         """
         # 1. Update the time
-        self.time += dt
+        self.time = self.time + dt
 
         # 2. Calculate changes in time for each molecule
         #FIXME: find error in calculation of molecule changes
@@ -236,12 +236,19 @@ class State:
         complex_degraded = m["complex"].degradation(dt)
         
         # 3. Update the number of molecules
-        m["TF_mRNA"] + TF_mRNA_trancribed - TF_mRNA_decayed
-        m["TF_protein"] + TF_mRNA_translated - TF_protein_decayed
-        m["miRNA"] + miRNA_trancribed - miRNA_decayed - used_molecules[0] + complex_degraded
-        m["mRNA"] + mRNA_trancribed - mRNA_decayed - used_molecules[1]
-        m["protein"] + mRNA_translated - protein_decayed
-        m["complex"] + formed_complex - complex_degraded
+        # m["TF_mRNA"] + TF_mRNA_trancribed - TF_mRNA_decayed
+        # m["TF_protein"] + TF_mRNA_translated - TF_protein_decayed
+        # m["miRNA"] + miRNA_trancribed - miRNA_decayed - used_molecules[0] + complex_degraded
+        # m["mRNA"] + mRNA_trancribed - mRNA_decayed - used_molecules[1]
+        # m["protein"] + mRNA_translated - protein_decayed
+        # m["complex"] + formed_complex - complex_degraded
+
+        m["TF_mRNA"].count    =m["TF_mRNA"].count    + TF_mRNA_trancribed - TF_mRNA_decayed
+        m["TF_protein"].count =m["TF_protein"].count     + TF_mRNA_translated - TF_protein_decayed
+        m["miRNA"].count      =m["miRNA"].count            + miRNA_trancribed - miRNA_decayed - used_molecules[0] + complex_degraded
+        m["mRNA"].count       =m["mRNA"].count             + mRNA_trancribed - mRNA_decayed - used_molecules[1]
+        m["protein"].count    =m["protein"].count       + mRNA_translated - protein_decayed
+        m["complex"].count    =m["complex"].count       + formed_complex - complex_degraded
 
         if self.time == 1000:
             self.print(short=True)
@@ -311,7 +318,7 @@ class MoleculeLike:
         Returns:
             int: The number of molecules left after addition
         """
-        self.count += molecule_change
+        self.count = self.count + molecule_change
         return self.count
     
     def __sub__(self, molecule_change:int) -> int:
@@ -321,7 +328,7 @@ class MoleculeLike:
         Returns:
             int: The number of molecules left after subtraction
         """
-        self.count -= molecule_change
+        self.count = self.count - molecule_change
         return self.count
     
     def create_molecule_dict(self) -> dict:
