@@ -41,6 +41,28 @@ This Repository is mandatory for the course mentioned in the title. Weekly lectu
 # Gillespie Simulation Project
 ## Synopsis
 This project implements a Gillespie simulation of a microRNA-transcription factor-target protein feed-forward loop (FFL) in gene regulation. This stochastic simulation algorithm is used to model the time evolution of well-mixed biochemical systems.
+## Installation
+### Repo
+To download this repo, simply run:
+```console
+git clone https://github.com/Ch3fUlrich/43513-01---Programming-for-Life-Sciences---4KP.git
+```
+After that, the required python packages must be installed before running the codes.
+### Requirements
+#### Option 1: pip
+One way to install all project dependencies is using pip:
+```console
+pip install -r requirements.txt
+```
+#### Option 2: conda environment
+Alternatively, a conda environment can be created, and all dependencies installed automatically using:
+```console
+conda env create -f environment.yml
+```
+<strong>Note:</strong> if a conda environment is created, be sure to activate it before running the codes, using:
+```console
+conda activate gillespie
+```
 ## Background
 Biological processes are often stochastic in nature. This simulation focuses on a genetic circuit that can buffer stochastic fluctuations in gene expression. The circuit consists of:
 - A transcriptional regulator (transcription factor, q)
