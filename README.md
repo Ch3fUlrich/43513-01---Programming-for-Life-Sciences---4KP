@@ -5,37 +5,32 @@ This Repository is mandatory for the course mentioned in the title. Weekly lectu
 **The Project will be solved using Jupyter Notebook and Python 3.11**
 
 # TODO
-- [ ] Understand the project
-  - [x] Person 1
-  - [ ] Person 2
-  - [ ] Person 3
-  - [ ] Person 4
 - [x] Split Gillespie Example into functions for easier understanding
 - [x] Transform Project Goals into easy-to-understand formulas [Better Description](#better-description)
-- [ ] Look into [Paper](https://journals.plos.org/ploscompbiol/article?id=10.1371/journal.pcbi.1001101) explaining the project
-  - [ ] extract constants from paper
+- [x] Look into [Paper](https://journals.plos.org/ploscompbiol/article?id=10.1371/journal.pcbi.1001101) explaining the project
+  - [x] extract constants from paper
 - [ ] Implement functions for rules found in [Better Description](#better-description)
   - [ ] create Classes with functions
-    - [ ] MoleculeLike
+    - [x] MoleculeLike
       - [x] General expression function for functions below
       - [x] add molecules using operator overloading
       - [x] substract molecules using operator overloading
       - [x] general creation_rate function for molecules created from nothing
-    - [ ] Molecule
+    - [x] Molecule
       - [x] transcription
       - [x] translation
       - [x] decay
-    - [ ] Complex
+    - [x] Complex
       - [x] complex degradation
-      - [ ] complex formation
-  - [ ] Glippsie
-    - [ ] Combine all functions into one Gillespie function for 1 iteration
-    - [ ] Wrapper for Gillespie function to run multiple iterations
-    - [ ] Wrapper for Gillespie function to run multiple iterations with multiple runs (rajectories)
+      - [x] complex formation
+    - [x] State - compost of molecules representing the world
+      - [x] next State - Glippsie version of state change
+    - [x] State Machine - tracking states over time and trajectories
   - [ ] Plotting
     - [ ] Plotting function for single run
-    - [ ] Plotting function for the results of the Gillespie function
-  - [ ] Write tests for automated testing
+    - [x] Plotting function for the results of the Gillespie function
+- [ ] Write tests for automated testing
+- [ ] Add Logging
 
 
 # Gillespie Simulation Project
