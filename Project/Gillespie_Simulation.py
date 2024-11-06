@@ -115,7 +115,7 @@ class State_Machine:
         self.times = times
         return self.molecule_counts
 
-    def plot(self, example=False):
+    def plot(self, example=False, scale="linear"):
         """
         Plot the state of the cell.
         """
@@ -147,8 +147,9 @@ class State_Machine:
                     alpha=0.2,
                 )
 
+        plt.yscale(scale)
         plt.xlabel("Time")
-        plt.ylabel("Molecule count")
+        plt.ylabel(f"Molecule count ({scale})")
         plt.legend()
         plt.show()
 
