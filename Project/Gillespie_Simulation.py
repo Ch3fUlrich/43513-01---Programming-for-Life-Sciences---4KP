@@ -1,4 +1,6 @@
 # type hints
+from os.path import join
+from os.path import isdir
 from typing import List, Dict
 
 # calculation
@@ -102,12 +104,13 @@ class State_Machine:
         self.times = times
         return self.molecule_counts
 
-    def plot(self):
+    def plot(self,
+             save_folder: str or None=None
+             ) -> None:
         """
         Plot the state of the cell.
         """
-
-        #average over trajectories + confidence intervals
+        # average over trajectories + confidence intervals
         avg_counts = np.mean(self.molecule_counts, axis=0)
         std_counts = np.std(self.molecule_counts, axis=0)
         mean_times = np.mean(self.times, axis=0)
@@ -121,7 +124,15 @@ class State_Machine:
         plt.xlabel("Time")
         plt.ylabel("Molecule count")
         plt.legend()
-        plt.show()
+
+        if save_folder is not None:
+            if isdir(save_folder):
+                save_name = 'simulation_results.png'
+                save_path = join(save_folder,
+                                 save_name)
+                plt.savefig(save_path)
+        else:
+            plt.show()
 
 class State:
     def __init__(self, path:str):
@@ -576,3 +587,12 @@ def fast_random_occurrence(expression_rate:float, from_count:int) -> np.ndarray:
     
     num_occurences = np.sum(occurences)
     return num_occurences
+
+
+input_path = 'C:\\pycharm_projects\\43513-01---Programming-for-Life-Sciences---4KP\\Project\\states\\init_state.yaml'
+output_path = 'C:\\pycharm_projects\\43513-01---Programming-for-Life-Sciences---4KP\\output'
+init_state_path = construct_path(fname=input_path)
+start_state = State(init_state_path)
+simulator = State_Machine(state=start_state)
+results = simulator.run(steps=1100, trajectories=1)
+simulator.plot(save_folder=output_path)
