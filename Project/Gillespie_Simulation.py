@@ -1,6 +1,11 @@
-# type hints
+# os
 from os.path import join
 from os.path import isdir
+
+# cli arg parsing
+from argparse import ArgumentParser
+
+# type hints
 from typing import List, Dict
 
 # calculation
@@ -589,10 +594,77 @@ def fast_random_occurrence(expression_rate:float, from_count:int) -> np.ndarray:
     return num_occurences
 
 
+#####################################################################
+# argument parsing related functions
+
+
+def get_args_dict() -> dict:
+    """
+    Parses the arguments and returns a dictionary of the arguments.
+    :return: Dictionary. Represents the parsed arguments.
+    """
+    # defining program description
+    description = "split tif stacks into separate channels"
+
+    # creating a parser instance
+    parser = ArgumentParser(description=description)
+
+    # adding arguments to parser
+
+    # initial state param
+    parser.add_argument('-i', '--initial-state',
+                        dest='initial_state',
+                        required=True,
+                        type=str,
+                        help='defines path to initial state file (.yaml)')
+
+    # output folder param
+    parser.add_argument('-o', '--output-folder',
+                        dest='output_folder',
+                        required=False,
+                        type=str,
+                        help='defines path to output folder (save .npy and .png simulation plots)')
+
+    # skip enter param
+    parser.add_argument('-s', '--skip-enter',
+                        dest='skip_enter',
+                        action='store_true',
+                        required=False,
+                        help='defines whether to suppress "Enter to continue" input before execution')
+
+    # creating arguments dictionary
+    args_dict = vars(parser.parse_args())
+
+    # returning the arguments dictionary
+    return args_dict
+
+
+# defining main
+
+def main():
+    """
+    Parses args from command line
+    and runs main code block.
+    """
+    # parsing args
+    args_dict = get_args_dict()
+    initial_state_file = args_dict['initial_state']
+    output_folder = args_dict['output_folder']
+
+    # running simulation
+    init_state_path = construct_path(fname=input_path)
+    start_state = State(init_state_path)
+    simulator = State_Machine(state=start_state)
+    results = simulator.run(steps=1100, trajectories=1)
+    print(results)
+    exit()
+
+    # plotting/saving simulation
+    simulator.plot(save_folder=output_path)
+
+
+# running main
+if __name__ == '__main__':
+    main()
 input_path = 'C:\\pycharm_projects\\43513-01---Programming-for-Life-Sciences---4KP\\Project\\states\\init_state.yaml'
 output_path = 'C:\\pycharm_projects\\43513-01---Programming-for-Life-Sciences---4KP\\output'
-init_state_path = construct_path(fname=input_path)
-start_state = State(init_state_path)
-simulator = State_Machine(state=start_state)
-results = simulator.run(steps=1100, trajectories=1)
-simulator.plot(save_folder=output_path)
