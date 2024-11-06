@@ -618,6 +618,20 @@ def get_args_dict() -> dict:
                         type=str,
                         help='defines path to initial state file (.yaml)')
 
+    # trajectories param
+    parser.add_argument('-t', '--trajectories',
+                        dest='trajectories',
+                        required=True,
+                        type=int,
+                        help='defines number of trajectories')
+
+    # steps param
+    parser.add_argument('-s', '--steps',
+                        dest='steps',
+                        required=True,
+                        type=int,
+                        help='defines number of steps')
+
     # output folder param
     parser.add_argument('-o', '--output-folder',
                         dest='output_folder',
@@ -641,12 +655,15 @@ def main():
     args_dict = get_args_dict()
     input_path = args_dict['initial_state']
     output_folder = args_dict['output_folder']
+    trajectories = args_dict['trajectories']
+    steps = args_dict['steps']
 
     # running simulation
     init_state_path = construct_path(fname=input_path)
     start_state = State(init_state_path)
     simulator = State_Machine(state=start_state)
-    results = simulator.run(steps=1100, trajectories=1)
+    results = simulator.run(steps=steps,
+                            trajectories=trajectories)
     # TODO: check if these results must also be saved to output folder
 
     # plotting/saving simulation
