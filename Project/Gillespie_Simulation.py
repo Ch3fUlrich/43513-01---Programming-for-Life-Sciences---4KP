@@ -129,6 +129,7 @@ class State_Machine:
         plt.xlabel("Time")
         plt.ylabel("Molecule count")
         plt.legend()
+        # TODO: check if plot abruptly goes down because of fig dimensions or simulation itself
 
         if save_folder is not None:
             if isdir(save_folder):
