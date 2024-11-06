@@ -625,21 +625,12 @@ def get_args_dict() -> dict:
                         type=str,
                         help='defines path to output folder (save .npy and .png simulation plots)')
 
-    # skip enter param
-    parser.add_argument('-s', '--skip-enter',
-                        dest='skip_enter',
-                        action='store_true',
-                        required=False,
-                        help='defines whether to suppress "Enter to continue" input before execution')
-
     # creating arguments dictionary
     args_dict = vars(parser.parse_args())
 
     # returning the arguments dictionary
     return args_dict
 
-
-# defining main
 
 def main():
     """
@@ -648,10 +639,8 @@ def main():
     """
     # parsing args
     args_dict = get_args_dict()
-    # input_path = args_dict['initial_state']
-    # output_folder = args_dict['output_folder']
-    input_path = 'C:\\pycharm_projects\\43513-01---Programming-for-Life-Sciences---4KP\\Project\\states\\init_state.yaml'
-    output_folder = 'C:\\pycharm_projects\\43513-01---Programming-for-Life-Sciences---4KP\\output'
+    input_path = args_dict['initial_state']
+    output_folder = args_dict['output_folder']
 
     # running simulation
     init_state_path = construct_path(fname=input_path)
@@ -664,7 +653,6 @@ def main():
     simulator.plot(save_folder=output_folder)
 
 
-# running main
 if __name__ == '__main__':
     main()
 
