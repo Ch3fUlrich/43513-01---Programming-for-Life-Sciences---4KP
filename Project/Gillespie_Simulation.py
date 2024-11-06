@@ -656,6 +656,7 @@ def main():
     args_dict = get_args_dict()
     input_path = args_dict['initial_state']
     output_folder = args_dict['output_folder']
+    save = output_folder is not None
     trajectories = args_dict['trajectories']
     steps = args_dict['steps']
 
@@ -664,7 +665,9 @@ def main():
     start_state = State(init_state_path)
     simulator = State_Machine(state=start_state)
     results = simulator.run(steps=steps,
-                            trajectories=trajectories)
+                            trajectories=trajectories,
+                            save_path=output_folder,
+                            save=save)
     # TODO: check if these results must also be saved to output folder
 
     # plotting/saving simulation
