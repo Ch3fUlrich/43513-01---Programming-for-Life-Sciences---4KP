@@ -648,23 +648,23 @@ def main():
     """
     # parsing args
     args_dict = get_args_dict()
-    initial_state_file = args_dict['initial_state']
-    output_folder = args_dict['output_folder']
+    # input_path = args_dict['initial_state']
+    # output_folder = args_dict['output_folder']
+    input_path = 'C:\\pycharm_projects\\43513-01---Programming-for-Life-Sciences---4KP\\Project\\states\\init_state.yaml'
+    output_folder = 'C:\\pycharm_projects\\43513-01---Programming-for-Life-Sciences---4KP\\output'
 
     # running simulation
     init_state_path = construct_path(fname=input_path)
     start_state = State(init_state_path)
     simulator = State_Machine(state=start_state)
     results = simulator.run(steps=1100, trajectories=1)
-    print(results)
-    exit()
+    # TODO: check if these results must also be saved to output folder
 
     # plotting/saving simulation
-    simulator.plot(save_folder=output_path)
+    simulator.plot(save_folder=output_folder)
 
 
 # running main
 if __name__ == '__main__':
     main()
-input_path = 'C:\\pycharm_projects\\43513-01---Programming-for-Life-Sciences---4KP\\Project\\states\\init_state.yaml'
-output_path = 'C:\\pycharm_projects\\43513-01---Programming-for-Life-Sciences---4KP\\output'
+
