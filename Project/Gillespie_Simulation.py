@@ -562,6 +562,7 @@ def construct_path(path:str=None, fname:str=None) -> str:
 
     """
     path = path or Path.cwd()
+    # TODO: check if it's better to keep folder+path construction here or if take the whole path from cli
     fname = fname or "init_state.yaml"
     fpath = Path(path).joinpath("states", fname)
     if fpath.suffix != ".yaml":
