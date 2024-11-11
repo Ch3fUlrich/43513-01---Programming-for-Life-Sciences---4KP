@@ -125,7 +125,7 @@ class State_Machine:
     def plot(self,
              example=False,
              scale="linear",
-             output_folder: str or None = None
+             save_folder: str or None = None
              ) -> None:
         """
         Plot the state of the cell.
@@ -164,11 +164,11 @@ class State_Machine:
         plt.legend()
 
         # checking if output folder path is valid
-        if output_folder is not None:
+        if save_folder is not None:
 
             # defining save name/path
             save_name = f'simulation_plot.png'
-            save_path = join(output_folder,
+            save_path = join(save_folder,
                              save_name)
 
             # saving plot
