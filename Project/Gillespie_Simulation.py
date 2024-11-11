@@ -1,3 +1,4 @@
+print('importing required libraries...')  # noqa
 # os
 from os.path import join
 from os.path import isdir
@@ -26,6 +27,7 @@ from pathlib import Path
 
 # copy
 import copy
+print('all required libraries successfully imported.')  # noqa
 
 
 class State_Machine:
