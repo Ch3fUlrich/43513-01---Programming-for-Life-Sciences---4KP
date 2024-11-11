@@ -36,6 +36,15 @@ This Repository is mandatory for the course mentioned in the title. Weekly lectu
 # Gillespie Simulation Project
 ## Synopsis
 This project implements a Gillespie simulation of a microRNA-transcription factor-target protein feed-forward loop (FFL) in gene regulation. This stochastic simulation algorithm is used to model the time evolution of well-mixed biochemical systems.
+## Usage
+To run the simulation, one must provide the initial state (.yaml file) and optionally an output folder:
+```console
+python Gillespie_Simulation.py -i init_state.yaml -o .\output
+```
+For additional information, run
+```console
+python Gillespie_Simulation.py -h
+```
 ## Installation
 ### Repo
 To download this repo, simply run:

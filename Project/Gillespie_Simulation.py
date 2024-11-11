@@ -1,3 +1,11 @@
+print('importing required libraries...')  # noqa
+# os
+from os.path import join
+from os.path import isdir
+
+# cli arg parsing
+from argparse import ArgumentParser
+
 # type hints
 from typing import List, Dict
 
@@ -19,6 +27,7 @@ from pathlib import Path
 
 # copy
 import copy
+print('all required libraries successfully imported.')  # noqa
 
 
 class State_Machine:
@@ -115,7 +124,11 @@ class State_Machine:
         self.times = times
         return self.molecule_counts
 
-    def plot(self, example=False, scale="linear"):
+    def plot(self,
+             example=False,
+             scale="linear",
+             save_folder: str or None = None
+             ) -> None:
         """
         Plot the state of the cell.
         """
@@ -151,7 +164,22 @@ class State_Machine:
         plt.xlabel("Time")
         plt.ylabel(f"Molecule count ({scale})")
         plt.legend()
-        plt.show()
+
+        # checking if output folder path is valid
+        if save_folder is not None:
+
+            # defining save name/path
+            save_name = f'simulation_plot.png'
+            save_path = join(save_folder,
+                             save_name)
+
+            # saving plot
+            plt.savefig(save_path)
+
+        else:
+
+            # just showing plot wo saving
+            plt.show()
 
 
 class State:
@@ -611,6 +639,7 @@ def construct_path(path: str = None, fname: str = None) -> str:
 
     """
     path = path or Path.cwd()
+    # TODO: check if it's better to keep folder+path construction here or if take the whole path from cli
     fname = fname or "init_state.yaml"
     fpath = Path(path).joinpath("states", fname)
     if fpath.suffix != ".yaml":
@@ -642,3 +671,87 @@ def fast_random_occurrence(expression_rate: float, from_count: int) -> np.ndarra
 
     num_occurences = np.sum(occurences)
     return num_occurences
+
+
+#####################################################################
+# argument parsing related functions
+
+
+def get_args_dict() -> dict:
+    """
+    Parses the arguments and returns a dictionary of the arguments.
+    :return: Dictionary. Represents the parsed arguments.
+    """
+    # defining program description
+    description = "split tif stacks into separate channels"
+
+    # creating a parser instance
+    parser = ArgumentParser(description=description)
+
+    # adding arguments to parser
+
+    # initial state param
+    parser.add_argument('-i', '--initial-state',
+                        dest='initial_state',
+                        required=True,
+                        type=str,
+                        help='defines path to initial state file (.yaml)')
+
+    # trajectories param
+    parser.add_argument('-t', '--trajectories',
+                        dest='trajectories',
+                        required=True,
+                        type=int,
+                        help='defines number of trajectories')
+
+    # steps param
+    parser.add_argument('-s', '--steps',
+                        dest='steps',
+                        required=True,
+                        type=int,
+                        help='defines number of steps')
+
+    # output folder param
+    parser.add_argument('-o', '--output-folder',
+                        dest='output_folder',
+                        required=False,
+                        type=str,
+                        help='defines path to output folder (save .npy and .png simulation plots)')
+
+    # creating arguments dictionary
+    args_dict = vars(parser.parse_args())
+
+    # returning the arguments dictionary
+    return args_dict
+
+
+def main():
+    """
+    Parses args from command line
+    and runs main code block.
+    """
+    # parsing args
+    args_dict = get_args_dict()
+    input_path = args_dict['initial_state']
+    output_folder = args_dict['output_folder']
+    save = output_folder is not None
+    trajectories = args_dict['trajectories']
+    steps = args_dict['steps']
+
+    # running simulation
+    init_state_path = construct_path(fname=input_path)
+    start_state = State(init_state_path)
+    simulator = State_Machine(state=start_state)
+    results = simulator.run(steps=steps,
+                            trajectories=trajectories,
+                            save_path=output_folder,
+                            save=save)
+    # TODO: check if these results must also be saved to output folder
+
+    # plotting/saving simulation
+    simulator.plot(save_folder=output_folder)
+
+
+if __name__ == '__main__':
+    main()
+
