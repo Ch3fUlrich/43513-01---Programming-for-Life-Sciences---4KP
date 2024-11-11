@@ -122,7 +122,11 @@ class State_Machine:
         self.times = times
         return self.molecule_counts
 
-    def plot(self, example=False, scale="linear"):
+    def plot(self,
+             example=False,
+             scale="linear",
+             output_folder: str or None = None
+             ) -> None:
         """
         Plot the state of the cell.
         """
@@ -158,7 +162,22 @@ class State_Machine:
         plt.xlabel("Time")
         plt.ylabel(f"Molecule count ({scale})")
         plt.legend()
-        plt.show()
+
+        # checking if output folder path is valid
+        if output_folder is not None:
+
+            # defining save name/path
+            save_name = f'simulation_plot.png'
+            save_path = join(output_folder,
+                             save_name)
+
+            # saving plot
+            plt.savefig(save_path)
+
+        else:
+
+            # just showing plot wo saving
+            plt.show()
 
 
 class State:
