@@ -693,29 +693,32 @@ def get_args_dict() -> dict:
     # initial state param
     parser.add_argument('-i', '--initial-state',
                         dest='initial_state',
-                        required=True,
                         type=str,
+                        required=True,
                         help='defines path to initial state file (.yaml)')
 
     # trajectories param
     parser.add_argument('-t', '--trajectories',
                         dest='trajectories',
-                        required=True,
                         type=int,
+                        required=False,
+                        default=5,
                         help='defines number of trajectories')
 
     # steps param
     parser.add_argument('-s', '--steps',
                         dest='steps',
-                        required=True,
                         type=int,
+                        required=False,
+                        default=100,
                         help='defines number of steps')
 
     # output folder param
     parser.add_argument('-o', '--output-folder',
                         dest='output_folder',
-                        required=False,
                         type=str,
+                        required=False,
+                        default='output',
                         help='defines path to output folder (save .npy and .png simulation plots)')
 
     # creating arguments dictionary
