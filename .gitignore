@@ -5,3 +5,5 @@
 *molecule_counts*.npy
 *logs
 *temp
+.idea/
+./Project/output
