@@ -1,7 +1,6 @@
 print('importing required libraries...')  # noqa
 # os
 from os.path import join
-from os.path import isdir
 
 # cli arg parsing
 from argparse import ArgumentParser
