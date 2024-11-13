@@ -325,6 +325,12 @@ class State:
         m["protein"].count = m["protein"].count + mRNA_translated - protein_decayed
         m["complex"].count = m["complex"].count + formed_complex - complex_degraded
 
+        # Debugging purpose
+        for molecule_name, m_class in m.items():
+            if m_class.count < 0:
+                # TIXME: Find the reason behind this bug
+                raise ValueError(f"Negative count for {molecule_name}")
+
         # Debugging Output
         # if self.time == 1000:
         #    self.print(short=True)
