@@ -9,8 +9,8 @@ This Repository is mandatory for the course mentioned in the title. Weekly lectu
 - [x] Transform Project Goals into easy-to-understand formulas [Better Description](#better-description)
 - [x] Look into [Paper](https://journals.plos.org/ploscompbiol/article?id=10.1371/journal.pcbi.1001101) explaining the project
   - [x] extract constants from paper
-- [ ] Implement functions for rules found in [Better Description](#better-description)
-  - [ ] create Classes with functions
+- [x] Implement functions for rules found in [Better Description](#better-description)
+  - [x] create Classes with functions
     - [x] MoleculeLike
       - [x] General expression function for functions below
       - [x] add molecules using operator overloading
@@ -26,20 +26,41 @@ This Repository is mandatory for the course mentioned in the title. Weekly lectu
     - [x] State - compost of molecules representing the world
       - [x] next State - Glippsie version of state change
     - [x] State Machine - tracking states over time and trajectories
-  - [ ] Plotting
-    - [ ] Plotting function for single run
+  - [x] Plotting
+    - [x] Plotting function for single run
     - [x] Plotting function for the results of the Gillespie function
+- [ ] Usability
+  - [ ] Create Example notebook and put it into `Weeks/Week 01...`
+  - [ ] Create better descriptions of usage inside Jupyter Notebook
+  - [ ] Block pushing to main branch
+  - [ ] Add contributors to reviewers
+  - [ ] Create issue for calculation problem
+  - [ ] Add correct type hints
+  - [ ] Add correct docstrings
+  - [ ] Add Logging
+  - [ ] Create proper installation of requirements
+  - [ ] Create pip-test package
 - [ ] Write tests for automated testing
-- [ ] Add Logging
+  - [ ] Simulation results are expected ? What numbers are needed ?
 
 
 # Gillespie Simulation Project
 ## Synopsis
 This project implements a Gillespie simulation of a microRNA-transcription factor-target protein feed-forward loop (FFL) in gene regulation. This stochastic simulation algorithm is used to model the time evolution of well-mixed biochemical systems.
 ## Usage
-To run the simulation, one must provide the initial state (.yaml file) and optionally an output folder:
+### Define Initial State
+To be able to run the simulation you need to define the initial State of the system. An example can be found in `./Project/states/initial_state.yaml`. This file will be loaded by the simulation before running. **IMPORTANT:** The naming must be the same as in the example file.
+
+### Run
+To run the simulation:
 ```console
-python Gillespie_Simulation.py -i init_state.yaml -o .\output
+cd Project
+python Gillespie_Simulation.py
+```
+or you provide the initial state (.yaml file):
+``` console
+cd Project
+python Gillespie_Simulation.py -i init_state.yaml
 ```
 For additional information, run
 ```console

@@ -270,7 +270,6 @@ class State:
         self.time = self.time + dt
 
         # 2. Calculate changes in time for each molecule
-        # FIXME: find error in calculation of molecule changes
         m = copy.deepcopy(self.molecules)
 
         # TF_mRNA
@@ -384,26 +383,6 @@ class MoleculeLike:
         """
         self.name = name
         self.count = count
-
-    def __add__(self, molecule_change: int) -> int:
-        """
-        Add the number of molecules. Overloading the + operator.
-
-        Returns:
-            int: The number of molecules left after addition
-        """
-        self.count = self.count + molecule_change
-        return self.count
-
-    def __sub__(self, molecule_change: int) -> int:
-        """
-        Subtract the number of molecules. Overloading the - operator.
-
-        Returns:
-            int: The number of molecules left after subtraction
-        """
-        self.count = self.count - molecule_change
-        return self.count
 
     def create_molecule_dict(self) -> dict:
         """
@@ -686,7 +665,7 @@ def get_args_dict() -> dict:
     :return: dict - A dictionary containing parsed arguments with argument names as keys and user-provided values.
     """
     # defining program description
-    description = "split tif stacks into separate channels"
+    description = "run gillespie simulation"
 
     # creating a parser instance
     parser = ArgumentParser(description=description)
