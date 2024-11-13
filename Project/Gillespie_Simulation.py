@@ -1,4 +1,4 @@
-print('importing required libraries...')  # noqa
+print("importing required libraries...")  # noqa
 # os
 from os.path import join
 
@@ -6,7 +6,7 @@ from os.path import join
 from argparse import ArgumentParser
 
 # type hints
-from typing import List, Dict
+from typing import List, Dict, Optional, Union, Tuple
 
 # calculation
 import numpy as np
@@ -26,8 +26,6 @@ from pathlib import Path
 
 # copy
 import copy
-print('all required libraries successfully imported.')  # noqa
-
 
 class State_Machine:
     def __init__(self, innit_state_path: str = None, state=None, dt: int = 1):
@@ -68,7 +66,8 @@ class State_Machine:
         # Default file name
         fname = fname or "molecule_counts"
         path = path or self.path
-        fpath = Path(path).joinpath(fname)
+        fpath = Path(path).parent.joinpath("output", fname)
+        fpath.parent.mkdir(parents=True, exist_ok=True)
         np.save(fpath, molecule_counts)
 
     def reset(self):
@@ -83,7 +82,7 @@ class State_Machine:
         self,
         steps: int = 100,
         trajectories: int = 100,
-        save=True,
+        save: bool = True,
         saven_fname: str = None,
         save_path: str = None,
     ):
@@ -107,9 +106,9 @@ class State_Machine:
         molecule_counts = np.zeros((trajectories, steps, n_molecules))
         molecule_counts[0, 0] = self.state.extract_molecule_counts()
         times = np.zeros((trajectories, steps))
-        for i in range(trajectories):
+        for i in trange(trajectories):
             print(f"Trajectory {i+1}/{trajectories}")
-            for j in trange(1, steps):
+            for j in range(1, steps):
                 self.state.next_state(self.dt)
                 times[i, j] = self.state.time
                 molecule_counts[i, j] = self.state.extract_molecule_counts()
@@ -123,11 +122,7 @@ class State_Machine:
         self.times = times
         return self.molecule_counts
 
-    def plot(self,
-             example=False,
-             scale="linear",
-             save_folder: str or None = None
-             ) -> None:
+    def plot(self, example=False, scale="linear", save_folder: str = None) -> None:
         """
         Plot the state of the cell.
         """
@@ -166,11 +161,14 @@ class State_Machine:
 
         # checking if output folder path is valid
         if save_folder is not None:
+            save_folder = Path(save_folder)
+
+            # creating folder if it doesn't exist
+            save_folder.mkdir(parents=True, exist_ok=True)
 
             # defining save name/path
-            save_name = f'simulation_plot.png'
-            save_path = join(save_folder,
-                             save_name)
+            save_name = f"simulation_plot.png"
+            save_path = save_folder.joinpath(save_name)
 
             # saving plot
             plt.savefig(save_path)
@@ -672,14 +670,21 @@ def fast_random_occurrence(expression_rate: float, from_count: int) -> np.ndarra
     return num_occurences
 
 
-#####################################################################
-# argument parsing related functions
-
-
 def get_args_dict() -> dict:
     """
-    Parses the arguments and returns a dictionary of the arguments.
-    :return: Dictionary. Represents the parsed arguments.
+    Parses command-line arguments provided by the user and returns them as a dictionary.
+
+    This function defines the following arguments:
+    - `--initial-state` (`-i`): str, required
+        Path to the initial state file (.yaml) that defines the simulation's starting conditions.
+    - `--trajectories` (`-t`): int, optional, default=5
+        Number of trajectories for the simulation.
+    - `--steps` (`-s`): int, optional, default=100
+        Number of steps to run in each trajectory.
+    - `--output-folder` (`-o`): str, optional, default="output"
+        Path to the folder where the simulation's output files (.npy and .png) will be saved.
+
+    :return: dict - A dictionary containing parsed arguments with argument names as keys and user-provided values.
     """
     # defining program description
     description = "split tif stacks into separate channels"
@@ -690,35 +695,47 @@ def get_args_dict() -> dict:
     # adding arguments to parser
 
     # initial state param
-    parser.add_argument('-i', '--initial-state',
-                        dest='initial_state',
-                        type=str,
-                        required=True,
-                        help='defines path to initial state file (.yaml)')
+    parser.add_argument(
+        "-i",
+        "--initial-state",
+        dest="initial_state",
+        type=str,
+        required=False,
+        help="defines path to initial state file (.yaml)",
+    )
 
     # trajectories param
-    parser.add_argument('-t', '--trajectories',
-                        dest='trajectories',
-                        type=int,
-                        required=False,
-                        default=5,
-                        help='defines number of trajectories')
+    parser.add_argument(
+        "-t",
+        "--trajectories",
+        dest="trajectories",
+        type=int,
+        required=False,
+        default=5,
+        help="defines number of trajectories",
+    )
 
     # steps param
-    parser.add_argument('-s', '--steps',
-                        dest='steps',
-                        type=int,
-                        required=False,
-                        default=100,
-                        help='defines number of steps')
+    parser.add_argument(
+        "-s",
+        "--steps",
+        dest="steps",
+        type=int,
+        required=False,
+        default=100,
+        help="defines number of steps",
+    )
 
     # output folder param
-    parser.add_argument('-o', '--output-folder',
-                        dest='output_folder',
-                        type=str,
-                        required=False,
-                        default='output',
-                        help='defines path to output folder (save .npy and .png simulation plots)')
+    parser.add_argument(
+        "-o",
+        "--output-folder",
+        dest="output_folder",
+        type=str,
+        required=False,
+        default="output",
+        help="defines path to output folder (save .npy and .png simulation plots)",
+    )
 
     # creating arguments dictionary
     args_dict = vars(parser.parse_args())
@@ -729,31 +746,45 @@ def get_args_dict() -> dict:
 
 def main():
     """
-    Parses args from command line
-    and runs main code block.
+    Coordinates the execution of the simulation based on command-line arguments.
+
+    This function performs the following:
+    - Parses arguments using `get_args_dict`.
+    - Initializes the initial state using the `State` and `State_Machine` classes.
+    - Runs the simulation with parameters for the number of trajectories and steps.
+    - Plots and saves the simulation results if an output folder is specified.
+
+    Workflow:
+    1. Parse arguments to retrieve:
+        - `input_path`: Path to the initial state file.
+        - `output_folder`: Path where outputs will be saved.
+        - `save`: Boolean indicating whether to save outputs based on `output_folder`.
+        - `trajectories`: Number of trajectories to simulate.
+        - `steps`: Number of steps in each trajectory.
+    2. Run simulation using `State` and `State_Machine` classes.
+    3. Plot and save the simulation output.
+
+    :return: None
     """
     # parsing args
     args_dict = get_args_dict()
-    input_path = args_dict['initial_state']
-    output_folder = args_dict['output_folder']
+    input_path = args_dict["initial_state"]
+    output_folder = args_dict["output_folder"]
     save = output_folder is not None
-    trajectories = args_dict['trajectories']
-    steps = args_dict['steps']
+    trajectories = args_dict["trajectories"]
+    steps = args_dict["steps"]
 
     # running simulation
     init_state_path = construct_path(fname=input_path)
     start_state = State(init_state_path)
     simulator = State_Machine(state=start_state)
-    results = simulator.run(steps=steps,
-                            trajectories=trajectories,
-                            save_path=output_folder,
-                            save=save)
-    # TODO: check if these results must also be saved to output folder
+    results = simulator.run(
+        steps=steps, trajectories=trajectories, save_path=output_folder, save=save
+    )
 
     # plotting/saving simulation
     simulator.plot(save_folder=output_folder)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()
-
