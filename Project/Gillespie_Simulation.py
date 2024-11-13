@@ -1,9 +1,10 @@
-print("importing required libraries...")  # noqa
+# type hints
+from __future__ import annotations
+from typing import List, Dict, Optional, Union, Tuple
+
 # cli arg parsing
 from argparse import ArgumentParser
 
-# type hints
-from typing import List, Dict, Optional, Union, Tuple
 
 # calculation
 import numpy as np
@@ -26,7 +27,12 @@ import copy
 
 
 class State_Machine:
-    def __init__(self, innit_state_path: str = None, state=None, dt: int = 1):
+    def __init__(
+        self,
+        init_state_path: Optional[Union[str, Path]] = None,
+        state: Optional[State] = None,
+        dt: int = 1,
+    ):
         """
         A state machine object in a cell.
 
@@ -36,12 +42,16 @@ class State_Machine:
             dt: int
                 The time step
         """
-        if innit_state_path and state is not None:
-            raise ValueError("init_state_path and state cannot be provided at the same")
-        if innit_state_path:
-            self.state = State(innit_state_path)
-        else:
-            self.state = state
+        if init_state_path is not None and state is not None:
+            if state.path != init_state_path:
+                raise ValueError(
+                    f"""Provided initial state path and state object do not have the same path.
+                                 init_state_path: {init_state_path}
+                                 state.path: {state.path}"""
+                )
+        init_state_path = construct_path(init_state_path)
+        self.state = State(init_state_path)
+
         self.path = self.state.path.parent
         self.dt = dt
         self.times = None
@@ -606,20 +616,21 @@ class Complex(MoleculeLike):
         return formed_complexes, other_count_change
 
 
-def construct_path(path: str = None, fname: str = None) -> str:
+def construct_path(path: str = None) -> str:
     """
     Construct the path to the file. If the path is not provided, the current working directory is used.
 
     Parameters:
 
     """
-    path = path or Path.cwd()
-    # TODO: check if it's better to keep folder+path construction here or if take the whole path from cli
-    fname = fname or "init_state.yaml"
-    fpath = Path(path).joinpath("states", fname)
-    if fpath.suffix != ".yaml":
+    if not path:
+        state_folder = "states"
+        fname = "init_state.yaml"
+        path = Path.cwd().joinpath(state_folder, fname)
+
+    if path.suffix != ".yaml":
         raise ValueError("File must be a yaml file")
-    return fpath
+    return path
 
 
 @njit(parallel=True)
@@ -753,9 +764,7 @@ def main():
     steps = args_dict["steps"]
 
     # running simulation
-    init_state_path = construct_path(fname=input_path)
-    start_state = State(init_state_path)
-    simulator = State_Machine(state=start_state)
+    simulator = State_Machine(init_state_path=input_path)
     results = simulator.run(
         steps=steps, trajectories=trajectories, save_path=output_folder, save=save
     )
