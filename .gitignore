@@ -6,4 +6,4 @@
 *logs
 *temp
 .idea/
-./Project/output
+*output
