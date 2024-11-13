@@ -27,6 +27,7 @@ from pathlib import Path
 # copy
 import copy
 
+
 class State_Machine:
     def __init__(self, innit_state_path: str = None, state=None, dt: int = 1):
         """
@@ -318,9 +319,10 @@ class State:
         m["protein"].count = m["protein"].count + mRNA_translated - protein_decayed
         m["complex"].count = m["complex"].count + formed_complex - complex_degraded
 
-        if self.time == 1000:
-            self.print(short=True)
-            print("1000")
+        # Debugging Output
+        # if self.time == 1000:
+        #    self.print(short=True)
+        #    print("1000")
 
         self.molecules = m
         self.create_state_dict(self.state_dict["time"], save=False)
