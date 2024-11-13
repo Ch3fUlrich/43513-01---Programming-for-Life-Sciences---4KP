@@ -24,8 +24,6 @@ from pathlib import Path
 # copy
 import copy
 
-#test
-
 
 class State_Machine:
     def __init__(self, innit_state_path: str = None, state=None, dt: int = 1):
