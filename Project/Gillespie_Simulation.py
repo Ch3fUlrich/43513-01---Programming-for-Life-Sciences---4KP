@@ -30,11 +30,13 @@ class State_Machine:
         """
         A state machine object in a cell.
 
-        Parameters:
+        Args:
+            innit_state_path: str 
+                The path to the initial state YAML file
             state: State
                 The state of the cell
             dt: int
-                The time step
+                The time step for the simulation
         """
         if innit_state_path and state is not None:
             raise ValueError("init_state_path and state cannot be provided at the same")
@@ -53,7 +55,7 @@ class State_Machine:
         """
         Save the results of the runs.
 
-        Parameters:
+        Args:
             molecule_counts: np.ndarray
                 The number of molecules
             fname: str
@@ -87,17 +89,19 @@ class State_Machine:
         """
         Run the state machine for multiple steps.
 
-        Parameters:
-            steps: int
+        Args:
+            steps: int (default is 100)
                 Number of steps
-            trajectories: int
+            trajectories: int (default is 100)
                 Number of trajectories
             save: bool
-                If True, save the results
+                Whether to save the results. Default is True (=save results).
             saven_fname: str
                 The file name to save the results
             save_path: str
                 The path to save the results
+        Returns: numpy.ndarray
+            The molecule counts from the simulation
         """
         n_molecules = len(self.state.molecules)
         steps = steps + 1
@@ -122,7 +126,19 @@ class State_Machine:
 
     def plot(self, example=False, scale="linear", save_folder: str = None) -> None:
         """
-        Plot the state of the cell.
+        Plots the state of the cell.
+
+        Args: 
+            example: bool
+                If set to True, plots a single random trajectory. Default is False.
+            scale: str
+                Scale of the y-axis. Default is "linear".
+            save_folder: str
+                Directory to save the plot. If None, displays the plot.
+        
+        Returns:
+            None
+
         """
         if example:
             rand_num = np.random.randint(0, self.molecule_counts.shape[0])
@@ -182,11 +198,19 @@ class State:
         """
         A state object in a cell.
 
-        Parameters:
+        Args:
             path: str
                 The path of the state yaml file
-            molecules: dict
-
+       
+       Attributes:
+        path: str
+            The path to the state YAML file.
+        state_dict: dict
+            Dictionary containing the state information
+        time: int
+            time of current simulation
+        molecules: dict
+            Dictionary of molecules in the state.
         """
         if not isinstance(path, str) and not isinstance(path, Path):
             raise ValueError("Path must be a string or Path object")
@@ -214,7 +238,10 @@ class State:
 
     def set_init_state(self):
         """
-        Set the initial state of the cell.
+        Sets the initial state of the cell.
+
+        Returns:
+            None
         """
         self.state_dict = self.load_state()
         self.time: int = self.state_dict["time"]
@@ -222,18 +249,25 @@ class State:
 
     def save_state(self):
         """
-        Save the state of the cell to a yaml file.
+        Saves the state of the cell to a yaml file.
+
+        Returns:
+            None
         """
         with open(self.path, "w") as file:
             yaml.dump(self.state_dict, file)
 
     def create_state_dict(self, t, save: bool = False) -> dict:
         """
-        Create the state of the cell as a dictionary.
+        Creates the state of the cell as a dictionary.
 
-        Parameters:
+        Args:
+            t: int
+                Time of current simulation
             save: bool
-                If True, save the state to a yaml file
+                If True, save the state to a YAML file
+        Returns:
+            dict: The updated state dictionary.
         """
         state_dict = {"time": t}
         for molecule_name, molecule in self.molecules.items():
@@ -246,6 +280,9 @@ class State:
     def create_molecules(self):
         """
         Create the molecule objects in the cell.
+
+        Returns:
+            dict: A dictionary of molecule objects.
         """
         molecules = {}
         for name, molecule_dict in self.state_dict.items():
@@ -260,11 +297,13 @@ class State:
 
     def next_state(self, dt: int = 1):
         """
-        Update the state of the cell.
+        Updates the state of the cell for the next time step 
 
-        Parameters:
+        Args:
             dt: int
-                The time step
+                The time step for next. Default is 1.
+        Returns:
+            State: The updated state object.
         """
         # 1. Update the time
         self.time = self.time + dt
@@ -329,6 +368,10 @@ class State:
         """
         Extract the number of molecules in the cell.
 
+        Args: 
+            as_dict: bool
+                if True, returns dictionary with molecule counts. Default is False.
+
         Returns:
             List[int]: The number of molecules in the cell
         """
@@ -348,9 +391,14 @@ class State:
         """
         Print the state of the cell.
 
-        Parameters:
+        Args:
+            short: bool
+                If True, prints only the molecule counts. Default is False.
             full: bool
-                If True, print the full state of the cell
+                If True, print the full details of state of the cell. Default is False.
+        
+        Returns:
+            None.
         """
         current_time = self.time
         print("------------------------")
@@ -377,9 +425,12 @@ class MoleculeLike:
     def __init__(self, name: str, count: int):
         """
         A molecule like object in a cell
-        Parameters:
+        
+        Args:
+            name: str
+                name of molecule
             count: int
-                The number of molecules
+                The initial number of molecules
         """
         self.name = name
         self.count = count
@@ -387,6 +438,9 @@ class MoleculeLike:
     def create_molecule_dict(self) -> dict:
         """
         Create a dictionary of the molecule object
+
+        Returns: dict
+            A dictionary containing the molecule's attributes.
         """
         molecule_dict = {}
         for key, value in self.__dict__.items():
@@ -398,17 +452,17 @@ class MoleculeLike:
         self, expression_rate: int, dt: int = None, from_count: int = None
     ) -> int:
         """
-        Expression of a molecule over time. random choice for every molecule.
-        Parameters:
+        Simulates the expression or decay of a molecule over time. Random choice for every molecule.
+        Args:
             expression_rate: int
-                The rate at which the molecule is expressed
+                The rate at which the molecule is expressed/decayed.
+            dt: int
+                the time step. Default is 1 (or dt)
             from_nothing: bool
                 If True, the expression rate is from nothing, so count is 1
-            dt: int
-                The time
 
         Returns:
-            int: The number of molecules left after expression
+            int: The change in the number of molecules left after expression/decay
         """
         # Default time step is 1
         dt = dt or 1
@@ -432,9 +486,11 @@ class Molecule(MoleculeLike):
         """
         A molecule object in a cell.
 
-        Parameters:
-            transcription_rate: float
-                The rate at which the molecule is transcribed
+        Args:
+            name: str
+                name of the molecule
+            count: int
+                the initial number of molecules
             translation_rate: float
                 The rate at which the molecule is translated
             decay_rate: float
@@ -462,7 +518,7 @@ class Molecule(MoleculeLike):
         General version of the rate equation for the creation of a molecule from nothing.
         $\new_transcription_rate(Q) = \transcription_rate \frac{q}{q+K}$
 
-        Parameters:
+        Args:
             q: int
                 The number of TF molecules
             k: float
@@ -481,9 +537,10 @@ class Molecule(MoleculeLike):
     def decay(self, dt: int = None) -> int:
         """
         Decay of a molecule over time
-        Parameters:
+        
+        Args:
             dt: int
-                The time
+                The time step
 
         Returns:
             int: The number of molecules left after decay
@@ -496,7 +553,7 @@ class Molecule(MoleculeLike):
         """
         Transcription of a molecule over time
 
-        Parameters:
+        Args:
             protein: int
                 The number of proteins
             from_nothing: bool
@@ -523,7 +580,7 @@ class Molecule(MoleculeLike):
         """
         Translation of a molecule over time
 
-        Parameters:
+        Args:
             dt: int
                 The time
 
@@ -545,9 +602,11 @@ class Complex(MoleculeLike):
         """
         A complex object in a cell
 
-        Parameters:
+        Args:
+            name: str
+                name of molecule-complex
             count: int
-                The number of complexes
+                The intial number of complexes
             molecules_per_complex: List[int]
                 The number of molecules needed to form the complex
             degradation_rate: int
@@ -566,7 +625,7 @@ class Complex(MoleculeLike):
     def degradation(self, dt: int = None) -> int:
         """
         Degradation of a molecule over time
-        Parameters:
+        Args:
             dt: int
                 The time
 
@@ -580,7 +639,8 @@ class Complex(MoleculeLike):
         """
         Formation of a complex between multiple molecules over time.
         The complex is formed between multiple molecules 1:1 relationship.
-        Parameters:
+        
+        Args:
             molecules: List[int]
                 The number of molecules
             num_molecules: List[int]
@@ -610,7 +670,7 @@ def construct_path(path: str = None, fname: str = None) -> str:
     """
     Construct the path to the file. If the path is not provided, the current working directory is used.
 
-    Parameters:
+    Args:
 
     """
     path = path or Path.cwd()
@@ -628,7 +688,7 @@ def fast_random_occurrence(expression_rate: float, from_count: int) -> np.ndarra
     Fast random choice for each element in the array.
     This function is 4 times faster than np.random.choice.
 
-    Parameters:
+    Args:
         expression_rate: float
             The rate at which the molecule is expressed
         from_count: int
@@ -729,7 +789,7 @@ def main():
     This function performs the following:
     - Parses arguments using `get_args_dict`.
     - Initializes the initial state using the `State` and `State_Machine` classes.
-    - Runs the simulation with parameters for the number of trajectories and steps.
+    - Runs the simulation with Args for the number of trajectories and steps.
     - Plots and saves the simulation results if an output folder is specified.
 
     Workflow:
