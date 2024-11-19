@@ -21,31 +21,53 @@ Run the simulation with appropriate command-line arguments:
     python simulation.py -i initial_state.yaml -t 100 -s 100 -o ./output
 """
 
-print("importing required libraries...")  # noqa
-# cli arg parsing
-from argparse import ArgumentParser
+import logging
 
-# type hints
-from typing import List, Dict, Optional, Union, Tuple
+# Configure logging
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s - %(levelname)s - %(message)s",
+    handlers=[
+        logging.FileHandler("simulation.log"),
+        logging.StreamHandler()
+    ]
+)
+logger = logging.getLogger(__name__)
 
-# calculation
-import numpy as np
+logger.info("Starting the simulation script...")
 
-# fast calculation
-from numba import njit, prange
+try:
+    # cli arg parsing
+    from argparse import ArgumentParser
 
-# plotting
-import matplotlib.pyplot as plt
+    # type hints
+    from typing import List, Dict, Optional, Union, Tuple
 
-# show time till finished
-from tqdm import trange
+    # calculation
+    import numpy as np
 
-# loading files
-import yaml
-from pathlib import Path
+    # fast calculation
+    from numba import njit, prange
 
-# copy
-import copy
+    # plotting
+    import matplotlib.pyplot as plt
+
+    # show time till finished
+    from tqdm import trange
+
+    # loading files
+    import yaml
+    from pathlib import Path
+
+    # copy
+    import copy
+    
+    # Log success
+    logger.info("Successfully loaded all required libraries.")
+except ImportError as e:
+    logger.error(f"Failed to import required libraries: {e}")
+    raise
+
 
 
 class State_Machine:
@@ -80,7 +102,7 @@ class State_Machine:
         Generates a plot of the simulation results.
     """
         
-    def __init__(self, innit_state_path: str = None, state=None, dt: int = 1):
+    def __init__(self, innit_state_path: str = None, state=None, dt: int = 1) -> None:
         """
         Initializes a state machine for simulation.
 
@@ -113,7 +135,7 @@ class State_Machine:
 
     def save_runs(
         self, molecule_counts: np.ndarray, fname: str = None, path: str = None
-    ):
+    ) -> None:
         """
         Save the results of the simulation runs.
 
@@ -130,9 +152,16 @@ class State_Machine:
         path = path or self.path
         fpath = Path(path).parent.joinpath("output", fname)
         fpath.parent.mkdir(parents=True, exist_ok=True)
-        np.save(fpath, molecule_counts)
+        logger.info(f"Saving results to {fpath}")
+        try:
+            np.save(fpath, molecule_counts)
+            logger.info("Results saved successfully.")
+        except Exception as e:
+            logger.error(f"Failed to save results: {e}")
+            raise
+        
 
-    def reset(self):
+    def reset(self) -> None:
         """
         Reset the state machine to its initial configuration.
        
@@ -153,7 +182,7 @@ class State_Machine:
         save: bool = True,
         saven_fname: str = None,
         save_path: str = None,
-    ):
+    ) -> np.ndarray:
         """
         Runs the state machine for multiple steps and trajectories.
 
@@ -176,13 +205,14 @@ class State_Machine:
         numpy.ndarray
             A 3D array containing the molecule counts at each time step for all trajectories.
         """
+        logger.info(f"Starting simulation: {trajectories} trajectories, {steps} steps each.")
         n_molecules = len(self.state.molecules)
         steps = steps + 1
         molecule_counts = np.zeros((trajectories, steps, n_molecules))
         molecule_counts[0, 0] = self.state.extract_molecule_counts()
         times = np.zeros((trajectories, steps))
         for i in trange(trajectories):
-            print(f"Trajectory {i+1}/{trajectories}")
+            logger.info(f"Running trajectory {i + 1}/{trajectories}...")
             for j in range(1, steps):
                 self.state.next_state(self.dt)
                 times[i, j] = self.state.time
@@ -306,7 +336,7 @@ class State:
         Prints the current state in short, full, or default format.
     """
 
-    def __init__(self, path: str):
+    def __init__(self, path: str) -> None:
         """
         Initializes the state from a YAML file.
 
@@ -320,7 +350,9 @@ class State:
         ValueError
             If the provided path is not a valid YAML file.
         """
+        logger.info(f"Initializing state from file: {path}")
         if not isinstance(path, str) and not isinstance(path, Path):
+            logger.error("Path must be a string or Path object.")
             raise ValueError("Path must be a string or Path object")
         assert Path(path).suffix == ".yaml", "File must be a yaml file"
 
@@ -329,6 +361,7 @@ class State:
         self.time: int = None
         self.molecules: Dict = None
         self.set_init_state()
+        logger.info("State initialization completed successfully.")
 
     def load_state(self) -> dict:
         """
@@ -353,7 +386,7 @@ class State:
             raise ValueError("Path to initial state is not defined")
         return state
 
-    def set_init_state(self):
+    def set_init_state(self) -> None:
         """
         Initializes the state by loading the YAML file and setting up 
         the initial simulation state.
@@ -380,7 +413,7 @@ class State:
         self.time: int = self.state_dict["time"]
         self.molecules: Dict = self.create_molecules()
 
-    def save_state(self):
+    def save_state(self) -> None:
         """
         Saves the current state of the cell to a YAML file.
 
@@ -425,7 +458,7 @@ class State:
             self.save_state()
         return self.state_dict
 
-    def create_molecules(self):
+    def create_molecules(self) -> dict:
         """
         Creates molecule objects based on the initial state.
 
@@ -521,7 +554,7 @@ class State:
         # self.print(short=True)
         return self
 
-    def extract_molecule_counts(self, as_dict: bool = False) -> List[int]:
+    def extract_molecule_counts(self, as_dict: bool = False) -> Union[Dict[str, int], np.ndarray]:
         """
         Extracts molecule counts as a dictionary or NumPy array.
 
@@ -554,7 +587,7 @@ class State:
             )
         return counts
 
-    def print(self, short: bool = False, full: bool = False):
+    def print(self, short: bool = False, full: bool = False) -> None:
         """
         Prints the current state of the cell in three possible formats: short, full, or default.
 
@@ -609,7 +642,7 @@ class MoleculeLike:
         Simulates the expression or decay of a molecule over time
     """
 
-    def __init__(self, name: str, count: int):
+    def __init__(self, name: str, count: int) -> None :
         """
         Initialize a molecule-like object.
     
@@ -709,7 +742,7 @@ class Molecule(MoleculeLike):
         transcription_rate_constant: bool = False,
         k: float = None,
         c: float = None,
-    ):
+    ) -> None:
         """
         Initializes a molecule object with its attributes.
 
@@ -867,7 +900,7 @@ class Complex(MoleculeLike):
         molecules_per_complex: List[int],
         degradation_rate: int = None,
         formation_rate: int = None,
-    ):
+    ) -> None:
         """
        Initializes a complex object with its attributes.
 
@@ -1077,7 +1110,7 @@ def get_args_dict() -> dict:
     return args_dict
 
 
-def main():
+def main() -> None:
     """
     Coordinates the execution of the simulation based on user input in command-line.
 
@@ -1102,24 +1135,36 @@ def main():
     -------
     None
     """
+    logger.info("Starting the simulation...")
+    
     # parsing args
     args_dict = get_args_dict()
+    logger.info(f"Parsed arguments: {args_dict}")
+
     input_path = args_dict["initial_state"]
     output_folder = args_dict["output_folder"]
+    logger.info(f"Input path: {input_path}, Output folder: {output_folder}")
+
     save = output_folder is not None
     trajectories = args_dict["trajectories"]
     steps = args_dict["steps"]
 
     # running simulation
     init_state_path = construct_path(fname=input_path)
+    logger.info(f"Resolved initial state path: {init_state_path}")
+
     start_state = State(init_state_path)
+    logger.info("Initialized state machine.")
+
     simulator = State_Machine(state=start_state)
     results = simulator.run(
         steps=steps, trajectories=trajectories, save_path=output_folder, save=save
     )
+    logger.info("Simulation completed successfully.")
 
     # plotting/saving simulation
     simulator.plot(save_folder=output_folder)
+    logger.info("Plotting completed.")
 
 
 if __name__ == "__main__":
