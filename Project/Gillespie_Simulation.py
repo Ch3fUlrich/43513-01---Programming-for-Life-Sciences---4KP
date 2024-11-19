@@ -30,13 +30,21 @@ class State_Machine:
         """
         A state machine object in a cell.
 
-        Args:
-            innit_state_path: str 
-                The path to the initial state YAML file
-            state: State
-                The state of the cell
-            dt: int
-                The time step for the simulation
+        Parameters
+        ----------
+        innit_state_path : str, optional
+            Path to the YAML file describing the initial state of the cell.
+            Cannot be used together with `state`.
+        state : State, optional
+            A pre-initialized `State` object for the simulation. Cannot be used
+            together with `innit_state_path`.
+        dt : int, optional
+            The time step for the simulation. Default is 1.
+        
+        Raises
+        ------
+        ValueError
+            If both `innit_state_path` and `state` are provided.
         """
         if innit_state_path and state is not None:
             raise ValueError("init_state_path and state cannot be provided at the same")
@@ -53,15 +61,16 @@ class State_Machine:
         self, molecule_counts: np.ndarray, fname: str = None, path: str = None
     ):
         """
-        Save the results of the runs.
+        Save the results of the simulation runs.
 
-        Args:
-            molecule_counts: np.ndarray
-                The number of molecules
-            fname: str
-                The file name
-            path: str
-                The path to save the file
+        Parameters
+        ----------
+        molecule_counts : np.ndarray
+            Array of molecule counts from the simulation.
+        fname : str, optional
+            File name to save the results. Defaults to "molecule_counts.npy".
+        path : str, optional
+            Directory to save the file. Defaults to the simulation directory.
         """
         # Default file name
         fname = fname or "molecule_counts"
@@ -72,7 +81,11 @@ class State_Machine:
 
     def reset(self):
         """
-        Reset the state of the cell.
+        Reset the state of the cell to its initial state.
+
+        Returns 
+        -------
+        None
         """
         self.state = State(self.state.path)
         self.times = None
@@ -87,21 +100,26 @@ class State_Machine:
         save_path: str = None,
     ):
         """
-        Run the state machine for multiple steps.
+        Runs the state machine for multiple steps. If save is True, a np.array of  
 
-        Args:
-            steps: int (default is 100)
-                Number of steps
-            trajectories: int (default is 100)
-                Number of trajectories
-            save: bool
-                Whether to save the results. Default is True (=save results).
-            saven_fname: str
-                The file name to save the results
-            save_path: str
-                The path to save the results
-        Returns: numpy.ndarray
-            The molecule counts from the simulation
+        Parameters
+        ----------
+        steps : int, optional
+            Number of time steps for each trajectory. Default is 100.
+        trajectories : int (default is 100)
+            Number of independent simulation trajectories to run. Default is 100.
+        save : bool
+            Whether to save the results. Default is True (=save results).
+        saven_fname : str, optional
+            File name for saving the results. If not provided, a default name 
+            in the format `molecule_counts_{steps}_{trajectories}.npy` is used.
+        save_path : str, optional
+            Directory to save the results. 
+        
+        Returns
+        -------
+        numpy.ndarray
+            A 3D array containing the molecule counts at each time step for all trajectories.
         """
         n_molecules = len(self.state.molecules)
         steps = steps + 1
@@ -128,17 +146,18 @@ class State_Machine:
         """
         Plots the state of the cell.
 
-        Args: 
-            example: bool
-                If set to True, plots a single random trajectory. Default is False.
-            scale: str
-                Scale of the y-axis. Default is "linear".
-            save_folder: str
-                Directory to save the plot. If None, displays the plot.
+        Parameters
+        ---------- 
+        example: bool
+            If set to True, plots a single random trajectory. Default is False.
+        scale: str
+            Scale of the y-axis. Default is "linear".
+        save_folder: str
+            Directory to save the plot. If None, plot is displayed.
         
-        Returns:
-            None
-
+        Returns
+        -------
+        None
         """
         if example:
             rand_num = np.random.randint(0, self.molecule_counts.shape[0])
@@ -198,11 +217,13 @@ class State:
         """
         A state object in a cell.
 
-        Args:
-            path: str
-                The path of the state yaml file
+        Parameters
+        ----------
+        path: str
+            The path to the state YAML file. Must be a valid `.yaml` file.
        
-       Attributes:
+       Attributes
+       ----------
         path: str
             The path to the state YAML file.
         state_dict: dict
@@ -210,7 +231,8 @@ class State:
         time: int
             time of current simulation
         molecules: dict
-            Dictionary of molecules in the state.
+            A dictionary representing the molecules in the state. Keys are 
+            molecule names, and values contain their properties.
         """
         if not isinstance(path, str) and not isinstance(path, Path):
             raise ValueError("Path must be a string or Path object")
@@ -224,10 +246,19 @@ class State:
 
     def load_state(self) -> dict:
         """
-        Load the state of the cell from a yaml file.
+        Loads the state of the cell from the specified YAML file and 
+        returns it as a dictionary.
 
-        Returns:
-            dict: The state of the cell as a dictionary
+        Returns
+        -------
+        dict: 
+            The state of the cell as a dictionary
+        
+        Raises
+        ------
+        ValueError
+            If the provided `path` is not a string or a `Path` object, or if it 
+            does not point to a valid `.yaml` file.
         """
         if self.path:
             with open(self.path, "r") as file:
@@ -238,10 +269,26 @@ class State:
 
     def set_init_state(self):
         """
-        Sets the initial state of the cell.
+        Initializes the state by loading the YAML file and setting up 
+        the initial simulation state.
 
-        Returns:
-            None
+        This method loads the state dictionary from the YAML file using 
+        `load_state()` and initializes the simulation time and molecules 
+        based on the loaded data.
+
+        Attributes
+        ----------
+        state_dict : dict
+            The dictionary containing the full state information loaded from the YAML file.
+        time : int
+            The current simulation time, extracted from the loaded state dictionary.
+        molecules : dict
+            A dictionary of molecules in the state, created using the `create_molecules()` method. 
+            This contains molecule names as keys and their properties as values.
+
+        Returns
+        -------
+        None
         """
         self.state_dict = self.load_state()
         self.time: int = self.state_dict["time"]
@@ -249,25 +296,39 @@ class State:
 
     def save_state(self):
         """
-        Saves the state of the cell to a yaml file.
+       Saves the current state of the cell to a YAML file.
 
-        Returns:
-            None
+        This method writes the `state_dict` attribute, which contains the current 
+        state of the cell, to the specified YAML file defined in `self.path`.
+
+        Parameters
+        ----------
+        None
+        
+        Returns
+        -------
+        None
         """
         with open(self.path, "w") as file:
-            yaml.dump(self.state_dict, file)
+            yaml.dump(self.state_dict, file) # Converts the dictionary self.state_dict into a YAML-formatted string 
 
     def create_state_dict(self, t, save: bool = False) -> dict:
         """
-        Creates the state of the cell as a dictionary.
+        Creates and updates the state of the cell as a dictionary.
+        Method generates the current state of the cell (including the 
+        simulation time) and the states of all molecules. Optionally, if save set to True,
+        state is saved to a YAML file.
 
-        Args:
-            t: int
-                Time of current simulation
-            save: bool
-                If True, save the state to a YAML file
-        Returns:
-            dict: The updated state dictionary.
+       Parameters
+       ----------
+       t: int
+            Time of current simulation
+        save: bool
+            If True, save the state to a YAML file
+        Returns
+        -------
+        dict:
+            The updated state dictionary.
         """
         state_dict = {"time": t}
         for molecule_name, molecule in self.molecules.items():
@@ -281,8 +342,10 @@ class State:
         """
         Create the molecule objects in the cell.
 
-        Returns:
-            dict: A dictionary of molecule objects.
+        Returns
+        -------
+        dict: 
+            A dictionary of molecule objects.
         """
         molecules = {}
         for name, molecule_dict in self.state_dict.items():
@@ -297,13 +360,20 @@ class State:
 
     def next_state(self, dt: int = 1):
         """
-        Updates the state of the cell for the next time step 
+        This method updates the simulation time, calculates changes in molecule 
+        counts based on biological processes (e.g., transcription, decay, 
+        translation, and complex formation), and updates the state dictionary with 
+        the new molecule counts. The updated state object is returned.
 
-        Args:
-            dt: int
-                The time step for next. Default is 1.
-        Returns:
-            State: The updated state object.
+        Parameters
+        ----------
+        dt : int, optional
+            The time step for the simulation. Default is 1.
+
+        Returns
+        -------
+        state:
+            The updated state object after applying the changes for the next time step.
         """
         # 1. Update the time
         self.time = self.time + dt
@@ -368,12 +438,22 @@ class State:
         """
         Extract the number of molecules in the cell.
 
-        Args: 
-            as_dict: bool
-                if True, returns dictionary with molecule counts. Default is False.
+        Retrieves the counts of all molecules in the current state 
+        and returns them either as a dictionary or as a NumPy array, depending 
+        on the value of the `as_dict` parameter.
 
-        Returns:
-            List[int]: The number of molecules in the cell
+        Parameters
+        ----------
+        as_dict : bool, optional
+            If True, returns a dictionary where keys are molecule names and 
+            values are their counts. If False, returns a NumPy array of counts.
+            Default is False.
+
+        Returns
+        -------
+        Union[Dict[str, int], np.ndarray]
+            If `as_dict=True`: A dictionary with molecule names as keys and counts as values.
+            If `as_dict=False`: A NumPy array of molecule counts.
         """
         if as_dict:
             counts = {
@@ -389,16 +469,18 @@ class State:
 
     def print(self, short: bool = False, full: bool = False):
         """
-        Print the state of the cell.
+        Prints the current state of the cell in three possible formats: short, full, or default.
 
-        Args:
-            short: bool
-                If True, prints only the molecule counts. Default is False.
-            full: bool
-                If True, print the full details of state of the cell. Default is False.
+        Parameters
+        ----------
+        short: bool
+            If True, prints only the molecule counts. Default is False.
+        full: bool
+            If True, print the full details of state of the cell. Default is False.
         
-        Returns:
-            None.
+        Returns
+        -------
+        None
         """
         current_time = self.time
         print("------------------------")
@@ -426,11 +508,12 @@ class MoleculeLike:
         """
         A molecule like object in a cell
         
-        Args:
-            name: str
-                name of molecule
-            count: int
-                The initial number of molecules
+        Parameters
+        ----------
+        name: str
+            name of molecule
+        count: int
+            The initial number of molecules
         """
         self.name = name
         self.count = count
@@ -439,7 +522,9 @@ class MoleculeLike:
         """
         Create a dictionary of the molecule object
 
-        Returns: dict
+        Returns
+        -------
+        dict:
             A dictionary containing the molecule's attributes.
         """
         molecule_dict = {}
@@ -453,16 +538,20 @@ class MoleculeLike:
     ) -> int:
         """
         Simulates the expression or decay of a molecule over time. Random choice for every molecule.
-        Args:
-            expression_rate: int
-                The rate at which the molecule is expressed/decayed.
-            dt: int
-                the time step. Default is 1 (or dt)
-            from_nothing: bool
-                If True, the expression rate is from nothing, so count is 1
+        
+        Parameters
+        ----------
+        expression_rate: int
+            The rate at which the molecule is expressed/decayed.
+        dt: int
+            the time step. Default is 1 (or dt)
+        from_count: bool
+            If True, the expression rate is from nothing, so count is 1
 
-        Returns:
-            int: The change in the number of molecules left after expression/decay
+        Returns
+        -------
+        int: 
+            The change in the number of molecules left after expression/decay
         """
         # Default time step is 1
         dt = dt or 1
@@ -486,23 +575,24 @@ class Molecule(MoleculeLike):
         """
         A molecule object in a cell.
 
-        Args:
-            name: str
-                name of the molecule
-            count: int
-                the initial number of molecules
-            translation_rate: float
-                The rate at which the molecule is translated
-            decay_rate: float
-                The rate at which the molecule decays
-            transcription_rate: float
-                The rate at which the molecule is created
-            transcription_rate_constant: bool
-                If True, the transcription_rate value is constant
-            k: float
-                Half-maximal activation constant
-            c: float
-                Hill coefficient for fixing steepness of the activation curve. Default value is 1 for linear activation
+        Parameters
+        ----------
+        name: str
+            name of the molecule
+        count: int
+            the initial number of molecules
+        translation_rate: float, optional
+            The rate at which the molecule is translated
+        decay_rate: float, optional
+            The rate at which the molecule decays
+        transcription_rate: float, optional
+            The rate at which the molecule is created
+        transcription_rate_constant: bool, optional
+            If True, the transcription_rate value is constant
+        k: float
+            Half-maximal activation constant
+        c: float
+            Hill coefficient for fixing steepness of the activation curve. Default value is 1 for linear activation
         """
         super().__init__(name, count)
         self.translation_rate = translation_rate
@@ -515,21 +605,27 @@ class Molecule(MoleculeLike):
 
     def creation_rate(self, q: int, k: float, c: float) -> float:
         """
-        General version of the rate equation for the creation of a molecule from nothing.
-        $\new_transcription_rate(Q) = \transcription_rate \frac{q}{q+K}$
+        Calculate the rate of molecule creation using a generalized Hill function.
 
-        Args:
-            q: int
-                The number of TF molecules
-            k: float
-                Half-maximal activation constant
-            c: float
-                Hill coefficient for fixing steepness of the activation curve. Default value is 1 for linear activation
+        This method computes the creation rate of a molecule based on the number of molecules (`q`), the half-maximal activation constant (`k`), and the steepness 
+        of the activation curve controlled by the Hill coefficient (`c`). The equation is given by:
 
-        Returns:
-            float: The new creation rate of the molecule
+        new_transcription_rate(Q) = transcription_rate * (q^c / (q^c + k^c))
+
+        Parameters
+        ----------
+        q: int
+            The number of TF molecules
+        k: float
+            Half-maximal activation constant
+        c: float
+            The Hill coefficient, controlling the steepness of the activation curve. 
+            Default is 1, which corresponds to linear activation.
+        Returns
+        -------
+        float: 
+            The new creation rate of the molecule
         """
-        # Hill coefficient set to 1 for linear activation if not provided
         c = c or 1
         transcription_rate = self.transcription_rate * (q**c) / (k**c + q**c)
         return transcription_rate
@@ -538,12 +634,14 @@ class Molecule(MoleculeLike):
         """
         Decay of a molecule over time
         
-        Args:
-            dt: int
-                The time step
+        Parameters:
+        dt: int
+            The time step
 
-        Returns:
-            int: The number of molecules left after decay
+        Returns
+        -------
+        int: 
+            The number of molecules left after decay
         """
         # Default time step is 1
         dt = dt or 1
@@ -553,16 +651,25 @@ class Molecule(MoleculeLike):
         """
         Transcription of a molecule over time
 
-        Args:
-            protein: int
-                The number of proteins
-            from_nothing: bool
-                If True, the transcription rate is from nothing, so count is 1
-            dt: int
-                The time
+        Parameters
+        ----------
+        protein: int, optional
+            The number of protein molecules influencing transcription. If the transcription rate is 
+            non-constant, this value must be provided.
+        from_count: bool
+            If True, the transcription rate is from nothing, so count is 1
+        dt: int
+            The time step over which transcription is simulated. Defaults to 1 if not provided.
 
-        Returns:
-            int: The number of molecules left after transcription
+        Returns
+        -------
+        int: 
+            The number of molecules transcribed after the process.
+
+        Raises
+        ------
+        ValueError
+            If `protein` is not provided and the transcription rate is not constant.
         """
         if protein is None and not self.transcription_rate_constant:
             raise ValueError(
@@ -580,12 +687,16 @@ class Molecule(MoleculeLike):
         """
         Translation of a molecule over time
 
-        Args:
-            dt: int
-                The time
+        Parameters
+        ----------
+        dt: int, optional
+            The time The time step over which translation is simulated. If not provided, 
+            it defaults to 1.
 
-        Returns:
-            int: The number of molecules left after translation
+        Returns
+        -------
+        int: 
+            The number of molecules produced after translation of mRNA.
         """
         return self.express(self.translation_rate, dt, from_count=self.count)
 
@@ -600,22 +711,25 @@ class Complex(MoleculeLike):
         formation_rate: int = None,
     ):
         """
-        A complex object in a cell
+        Initialize a Complex object representing a molecular complex in a cell.
 
-        Args:
-            name: str
-                name of molecule-complex
-            count: int
-                The intial number of complexes
-            molecules_per_complex: List[int]
-                The number of molecules needed to form the complex
-            degradation_rate: int
-                The rate at which the complex degrades
-            formation_rate: int
-                The rate at which the complex is formed
+        Parameters
+        ----------
+        name: str
+            name of molecule-complex
+        count: int
+            The intial number of complexes
+        molecules_per_complex: List[int]
+            The number of molecules needed to form the complex
+        degradation_rate: int
+            The rate at which the complex degrades
+        formation_rate: int
+            The rate at which the complex is formed
 
-        Returns:
-            int: The number of molecules left after degradation
+        Returns
+        -------
+        int: 
+            The number of molecules left after degradation
         """
         super().__init__(name, count)
         self.molecules_per_complex = molecules_per_complex
@@ -625,12 +739,17 @@ class Complex(MoleculeLike):
     def degradation(self, dt: int = None) -> int:
         """
         Degradation of a molecule over time
-        Args:
-            dt: int
-                The time
+        
+        Parameters
+        ----------
+        dt: int, optional
+            The time step for the degradation simulation. Default is 1.
 
-        Returns:
-            int: The number of molecules left after degradation
+        Returns
+        -------
+        int: 
+            The number of molecules degraded during degradation
+            #### clarify whether the return value represents the number of molecules degraded or remaining
         """
         count_diff = self.express(self.degradation_rate, dt, from_count=self.count)
         return count_diff
@@ -640,18 +759,17 @@ class Complex(MoleculeLike):
         Formation of a complex between multiple molecules over time.
         The complex is formed between multiple molecules 1:1 relationship.
         
-        Args:
-            molecules: List[int]
-                The number of molecules
-            num_molecules: List[int]
-                The number of molecules needed to form the complex
-            complex_rate: int
-                The rate at which the complex is formed
-            dt: int
-                The time
+        Parameters
+        ----------
+        molecules: List[int]
+            The number of molecules
+        dt: int
+            The time step for the formation simulation. Defaults to 1 if not provided.
 
-        Returns:
-            List[int]: The number of molecules left after complex formation
+        Returns
+        -------
+        List[int]:
+            The number of molecules left after complex formation
         """
         # Default time step is 1
         dt = dt or 1
@@ -670,8 +788,22 @@ def construct_path(path: str = None, fname: str = None) -> str:
     """
     Construct the path to the file. If the path is not provided, the current working directory is used.
 
-    Args:
+    Parameters
+    ----------
+    path : str, optional
+        The directory path to the file. Defaults to the current working directory.
+    fname : str, optional
+        The name of the file. Defaults to "init_state.yaml".
 
+    Returns
+    -------
+    str
+        The constructed file path.
+
+    Raises
+    ------
+    ValueError
+        If the constructed file path does not have a ".yaml" extension.
     """
     path = path or Path.cwd()
     # TODO: check if it's better to keep folder+path construction here or if take the whole path from cli
@@ -688,11 +820,17 @@ def fast_random_occurrence(expression_rate: float, from_count: int) -> np.ndarra
     Fast random choice for each element in the array.
     This function is 4 times faster than np.random.choice.
 
-    Args:
-        expression_rate: float
-            The rate at which the molecule is expressed
-        from_count: int
-            The number of molecules
+    Parameters
+    ----------
+    expression_rate: float
+        The probability rate at which a molecule is expressed, typically between 0 and 1.
+    from_count: int
+        The number of molecules
+
+    Returns
+    -------
+    int
+        The total number of molecules that are expressed.
     """
     # Precompute the cumulative probability
     cumulative_prob = 1 - expression_rate
@@ -722,7 +860,10 @@ def get_args_dict() -> dict:
     - `--output-folder` (`-o`): str, optional, default="output"
         Path to the folder where the simulation's output files (.npy and .png) will be saved.
 
-    :return: dict - A dictionary containing parsed arguments with argument names as keys and user-provided values.
+    Returns
+    ------
+    dict:
+        A dictionary containing parsed arguments with argument names as keys and user-provided values.
     """
     # defining program description
     description = "run gillespie simulation"
@@ -802,7 +943,9 @@ def main():
     2. Run simulation using `State` and `State_Machine` classes.
     3. Plot and save the simulation output.
 
-    :return: None
+    Returns
+    -------
+    None
     """
     # parsing args
     args_dict = get_args_dict()
