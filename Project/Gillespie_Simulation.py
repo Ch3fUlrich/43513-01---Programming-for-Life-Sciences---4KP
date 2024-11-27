@@ -1,26 +1,12 @@
 from __future__ import annotations
 from typing import List, Dict, Optional, Union, Tuple
-
-# cli arg parsing
 from argparse import ArgumentParser
-
-# calculation
 import numpy as np
-
-# fast calculation
 from numba import njit, prange
-
-# plotting
 import matplotlib.pyplot as plt
-
-# show time till finished
 from tqdm import trange
-
-# loading files
 import yaml
 from pathlib import Path
-
-# copy
 import copy
 
 
@@ -75,7 +61,6 @@ class State_Machine:
             path: Optional[str]
                 The path to save the file
         """
-        # Default file name
         fname = fname or "molecule_counts"
         path = path or self.path
         fpath = Path(path).parent.joinpath("output", fname)
@@ -124,7 +109,6 @@ class State_Machine:
                 self.state.next_state(self.dt)
                 times[i, j] = self.state.time
                 molecule_counts[i, j] = self.state.extract_molecule_counts()
-            # reset the state
             self.state.set_init_state()
         if save:
             if not saven_fname:
@@ -153,7 +137,6 @@ class State_Machine:
         """
         if example:
             rand_num = np.random.randint(0, self.molecule_counts.shape[0])
-            # Plot the random trajectory
             for molecule_num, (molecule_name, molecule) in enumerate(
                 self.state.molecules.items()
             ):
@@ -162,7 +145,6 @@ class State_Machine:
                     label=molecule_name,
                 )
         else:
-            # average over trajectories + confidence intervals
             avg_counts = np.mean(self.molecule_counts, axis=0)
             std_counts = np.std(self.molecule_counts, axis=0)
             mean_times = np.mean(self.times, axis=0)
@@ -172,7 +154,6 @@ class State_Machine:
                 molecule_count = avg_counts[:, molecule_num]
                 molecule_std = std_counts[:, molecule_num]
                 plt.plot(molecule_count, label=molecule_name)
-                # confidence intervals
                 plt.fill_between(
                     mean_times,
                     molecule_count - molecule_std,
@@ -185,23 +166,14 @@ class State_Machine:
         plt.ylabel(f"Molecule count ({scale})")
         plt.legend()
 
-        # checking if output folder path is valid
         if save_folder is not None:
             save_folder = Path(save_folder)
-
-            # creating folder if it doesn't exist
             save_folder.mkdir(parents=True, exist_ok=True)
-
-            # defining save name/path
             save_name = "simulation_plot.png"
             save_path = save_folder.joinpath(save_name)
-
-            # saving plot
             plt.savefig(save_path)
 
         else:
-
-            # just showing plot wo saving
             plt.show()
 
 
@@ -354,20 +326,13 @@ class State:
         m["protein"].count = m["protein"].count + mRNA_translated - protein_decayed
         m["complex"].count = m["complex"].count + formed_complex - complex_degraded
 
-        # Debugging purpose
         for molecule_name, m_class in m.items():
             if m_class.count < 0:
                 # TIXME: Find the reason behind this bug
                 raise ValueError(f"Negative count for {molecule_name}")
-
-        # Debugging Output
-        # if self.time == 1000:
-        #    self.print(short=True)
-        #    print("1000")
-
+            
         self.molecules = m
         self.create_state_dict(self.state_dict["time"], save=False)
-        # self.print(short=True)
         return self
 
     def extract_molecule_counts(
@@ -422,8 +387,6 @@ class State:
 
             for molecule_name, molecule in self.molecules.items():
                 print(f"-> {molecule_name}: {molecule.count}")
-                # plotting the full molecule objects is too verbose
-                # print(f"-> {molecule.name}: {molecule.__dict__}")
 
 
 class MoleculeLike:
@@ -473,9 +436,7 @@ class MoleculeLike:
         Returns:
             int: The number of molecules left after expression
         """
-        # Default time step is 1
         dt = dt or 1
-        # Randomly choose if something happens for each molecule
         count_diff = fast_random_occurrence(expression_rate, from_count)
         return count_diff
 
@@ -520,7 +481,6 @@ class Molecule(MoleculeLike):
         self.transcription_rate = transcription_rate
         self.transcription_rate_constant = transcription_rate_constant
         self.k = k
-        # Hill coefficient set to 1 for linear activation if not provided
         self.c = c or 1
 
     def creation_rate(self, q: int, k: float, c: float) -> float:
@@ -540,7 +500,6 @@ class Molecule(MoleculeLike):
         Returns:
             float: The new creation rate of the molecule
         """
-        # Hill coefficient set to 1 for linear activation if not provided
         c = c or 1
         transcription_rate = self.transcription_rate * (q**c) / (k**c + q**c)
         return transcription_rate
@@ -556,7 +515,6 @@ class Molecule(MoleculeLike):
         Returns:
             int: The number of molecules left after decay
         """
-        # Default time step is 1
         dt = dt or 1
         return self.express(self.decay_rate, dt, from_count=self.count)
 
@@ -660,7 +618,6 @@ class Complex(MoleculeLike):
         Returns:
             List[int]: The number of molecules left after complex formation
         """
-        # Default time step is 1
         dt = dt or 1
         # Default number of molecules is 1 for each molecule
         num_possible_new_complexes = min(
@@ -744,15 +701,10 @@ def get_args_dict() -> dict:
     :return: dict - A dictionary containing parsed arguments with argument
         names as keys and user-provided values.
     """
-    # defining program description
     description = "run gillespie simulation"
 
-    # creating a parser instance
     parser = ArgumentParser(description=description)
 
-    # adding arguments to parser
-
-    # initial state param
     parser.add_argument(
         "-i",
         "--initial-state",
@@ -762,7 +714,6 @@ def get_args_dict() -> dict:
         help="defines path to initial state file (.yaml)",
     )
 
-    # trajectories param
     parser.add_argument(
         "-t",
         "--trajectories",
@@ -773,7 +724,6 @@ def get_args_dict() -> dict:
         help="defines number of trajectories",
     )
 
-    # steps param
     parser.add_argument(
         "-s",
         "--steps",
@@ -784,7 +734,6 @@ def get_args_dict() -> dict:
         help="defines number of steps",
     )
 
-    # output folder param
     parser.add_argument(
         "-o",
         "--output-folder",
@@ -796,10 +745,7 @@ def get_args_dict() -> dict:
             (save .npy and .png simulation plots)""",
     )
 
-    # creating arguments dictionary
     args_dict = vars(parser.parse_args())
-
-    # returning the arguments dictionary
     return args_dict
 
 
@@ -829,7 +775,6 @@ def main() -> None:
 
     :return: None
     """
-    # parsing args
     args_dict = get_args_dict()
     input_path = args_dict["initial_state"]
     output_folder = args_dict["output_folder"]
@@ -837,7 +782,6 @@ def main() -> None:
     trajectories = args_dict["trajectories"]
     steps = args_dict["steps"]
 
-    # running simulation
     simulator = State_Machine(init_state_path=input_path)
     simulator.run(
         steps=steps,
@@ -846,7 +790,6 @@ def main() -> None:
         save=save,
     )
 
-    # plotting/saving simulation
     simulator.plot(save_folder=output_folder)
 
 
