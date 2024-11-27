@@ -1,5 +1,5 @@
 from __future__ import annotations
-from typing import List, Dict, Optional, Union, Tuple
+from typing import List, Dict, Optional, Union
 from argparse import ArgumentParser
 import numpy as np
 from numba import njit, prange
@@ -191,17 +191,18 @@ class State:
         assert Path(path).suffix == ".yaml", "File must be a yaml file"
 
         self.path: Path = Path(path)
-        self.state_dict: Dict[str, Union[int, Dict[str, Union[int, float]]]] = None
+        self.state_dict: Dict[str, Union[str, int, float, List[int]]] = None
         self.time: int = None
         self.molecules: Dict[str, Union[Molecule, Complex]] = None
         self.set_init_state()
 
-    def load_state(self) -> Dict[str, Union[int, Dict[str, Union[int, float]]]]:
+    def load_state(self) -> Dict[str, Union[str, int, float, List[int]]]:
         """
         Load the state of the cell from a yaml file.
 
         Returns:
-            Dict[str, Union[int, Dict[str, Union[int, float]]]]: The state of the cell as a dictionary
+            Dict[str, Union[str, int, float, List[int]]]:
+                The state of the cell as a dictionary
         """
         if self.path:
             with open(self.path, "r") as file:
@@ -227,7 +228,7 @@ class State:
 
     def create_state_dict(
         self, t: int, save: bool = False
-    ) -> Dict[str, Union[int, Dict[str, Union[int, float]]]]:
+    ) -> Dict[str, Union[str, int, float, List[int]]]:
         """
         Create the state of the cell as a dictionary.
 
@@ -238,9 +239,10 @@ class State:
                 If True, save the state to a yaml file
 
         Returns:
-            Dict[str, Union[int, Dict[str, Union[int, float]]]]: The state dictionary
+            Dict[str, Union[str, int, float, List[int]]]:
+                The state dictionary
         """
-        state_dict: Dict[str, Union[int, Dict[str, Union[int, float]]]] = {"time": t}
+        state_dict: Dict[str, Union[str, int, float, List[int]]] = {"time": t}
         for molecule_name, molecule in self.molecules.items():
             molecule_dict = molecule.create_molecule_dict()
             state_dict.update(molecule_dict)
@@ -330,7 +332,7 @@ class State:
             if m_class.count < 0:
                 # TIXME: Find the reason behind this bug
                 raise ValueError(f"Negative count for {molecule_name}")
-            
+
         self.molecules = m
         self.create_state_dict(self.state_dict["time"], save=False)
         return self
@@ -346,7 +348,8 @@ class State:
                 If True, return the counts as a dictionary
 
         Returns:
-            Union[List[int], Dict[str, int]]: The number of molecules in the cell
+            Union[List[int], Dict[str, int]]:
+                The number of molecules in the cell
         """
         if as_dict:
             counts = {
@@ -576,9 +579,12 @@ class Complex(MoleculeLike):
         Parameters:
             name (str): The name of the complex
             count (int): The number of complexes
-            molecules_per_complex (List[int]): The number of molecules needed to form the complex
-            degradation_rate (Optional[int]): The rate at which the complex degrades
-            formation_rate (Optional[int]): The rate at which the complex is formed
+            molecules_per_complex (List[int]):
+                The number of molecules needed to form the complex
+            degradation_rate (Optional[int]):
+                The rate at which the complex degrades
+            formation_rate (Optional[int]):
+                The rate at which the complex is formed
         """
         super().__init__(name, count)
         self.molecules_per_complex = molecules_per_complex
