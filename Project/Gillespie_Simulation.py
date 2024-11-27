@@ -140,8 +140,6 @@ class State_Machine:
                 plt.plot(
                     self.molecule_counts[rand_num, :, molecule_num],
                     label=molecule_name,
-                    self.molecule_counts[rand_num, :, molecule_num],
-                    label=molecule_name,
                 )
         else:
             avg_counts = np.mean(self.molecule_counts, axis=0)
@@ -359,7 +357,6 @@ class State:
             }
         else:
             counts = np.array(
-                [molecule.count for _, molecule in self.molecules.items()],
                 [molecule.count for _, molecule in self.molecules.items()],
                 dtype=int,
             )
@@ -611,11 +608,6 @@ class Complex(MoleculeLike):
             dt,
             from_count=self.count,
         )
-        count_diff = self.express(
-            self.degradation_rate,
-            dt,
-            from_count=self.count,
-        )
         return count_diff
 
     def formation(
@@ -648,8 +640,6 @@ class Complex(MoleculeLike):
 
 def construct_path(path: Optional[str] = None) -> Path:
     """
-    Construct the path to the file. If the path is not provided, the current
-    working directory is used.
     Construct the path to the file. If the path is not provided, the current
     working directory is used.
 
@@ -698,13 +688,9 @@ def get_args_dict() -> dict:
     """
     Parses command-line arguments provided by the user and returns
     them as a dictionary.
-    Parses command-line arguments provided by the user and returns
-    them as a dictionary.
 
     This function defines the following arguments:
     - `--initial-state` (`-i`): str, required
-        Path to the initial state file (.yaml) that defines the
-        simulation's starting conditions.
         Path to the initial state file (.yaml) that defines the
         simulation's starting conditions.
     - `--trajectories` (`-t`): int, optional, default=5
@@ -714,11 +700,7 @@ def get_args_dict() -> dict:
     - `--output-folder` (`-o`): str, optional, default="output"
         Path to the folder where the simulation's
         output files (.npy and .png) will be saved.
-        Path to the folder where the simulation's
-        output files (.npy and .png) will be saved.
 
-    :return: dict - A dictionary containing parsed arguments with argument
-        names as keys and user-provided values.
     :return: dict - A dictionary containing parsed arguments with argument
         names as keys and user-provided values.
     """
@@ -764,8 +746,6 @@ def get_args_dict() -> dict:
         default="output",
         help="""defines path to output folder
             (save .npy and .png simulation plots)""",
-        help="""defines path to output folder
-            (save .npy and .png simulation plots)""",
     )
 
     args_dict = vars(parser.parse_args())
@@ -776,15 +756,9 @@ def main() -> None:
     """
     Coordinates the execution of the simulation based on command-line
     arguments.
-    Coordinates the execution of the simulation based on command-line
-    arguments.
 
     This function performs the following:
     - Parses arguments using `get_args_dict`.
-    - Initializes the initial state using the
-        `State` and `State_Machine` classes.
-    - Runs the simulation with parameters for
-        the number of trajectories and steps.
     - Initializes the initial state using the
         `State` and `State_Machine` classes.
     - Runs the simulation with parameters for
@@ -795,8 +769,6 @@ def main() -> None:
     1. Parse arguments to retrieve:
         - `input_path`: Path to the initial state file.
         - `output_folder`: Path where outputs will be saved.
-        - `save`:
-            Boolean indicating whether to save outputs based on `output_folder`
         - `save`:
             Boolean indicating whether to save outputs based on `output_folder`
         - `trajectories`: Number of trajectories to simulate.
