@@ -1,4 +1,3 @@
-print("importing required libraries...")  # noqa
 # cli arg parsing
 from argparse import ArgumentParser
 
@@ -24,11 +23,14 @@ from pathlib import Path
 # copy
 import copy
 
-#test
-
 
 class State_Machine:
-    def __init__(self, innit_state_path: str = None, state=None, dt: int = 1):
+    def __init__(
+        self,
+        innit_state_path: str = None,
+        state=None,
+        dt: int = 1,
+    ):
         """
         A state machine object in a cell.
 
@@ -39,7 +41,10 @@ class State_Machine:
                 The time step
         """
         if innit_state_path and state is not None:
-            raise ValueError("init_state_path and state cannot be provided at the same")
+            raise ValueError(
+                """init_state_path and state
+                            cannot be provided at the same"""
+            )
         if innit_state_path:
             self.state = State(innit_state_path)
         else:
@@ -122,7 +127,12 @@ class State_Machine:
         self.times = times
         return self.molecule_counts
 
-    def plot(self, example=False, scale="linear", save_folder: str = None) -> None:
+    def plot(
+        self,
+        example: bool = False,
+        scale: str = "linear",
+        save_folder: str = None,
+    ) -> None:
         """
         Plot the state of the cell.
         """
@@ -133,7 +143,8 @@ class State_Machine:
                 self.state.molecules.items()
             ):
                 plt.plot(
-                    self.molecule_counts[rand_num, :, molecule_num], label=molecule_name
+                    self.molecule_counts[rand_num, :, molecule_num],
+                    label=molecule_name,
                 )
         else:
             # average over trajectories + confidence intervals
@@ -167,7 +178,7 @@ class State_Machine:
             save_folder.mkdir(parents=True, exist_ok=True)
 
             # defining save name/path
-            save_name = f"simulation_plot.png"
+            save_name = "simulation_plot.png"
             save_path = save_folder.joinpath(save_name)
 
             # saving plot
@@ -341,7 +352,7 @@ class State:
             }
         else:
             counts = np.array(
-                [molecule.count for molecule_name, molecule in self.molecules.items()],
+                [molecule.count for _, molecule in self.molecules.items()],
                 dtype=int,
             )
         return counts
@@ -448,7 +459,8 @@ class Molecule(MoleculeLike):
             k: float
                 Half-maximal activation constant
             c: float
-                Hill coefficient for fixing steepness of the activation curve. Default value is 1 for linear activation
+                Hill coefficient for fixing steepness of the activation curve.
+                Default value is 1 for linear activation
         """
         super().__init__(name, count)
         self.translation_rate = translation_rate
@@ -461,7 +473,8 @@ class Molecule(MoleculeLike):
 
     def creation_rate(self, q: int, k: float, c: float) -> float:
         """
-        General version of the rate equation for the creation of a molecule from nothing.
+        General version of the rate equation for the creation of a molecule
+        from nothing.
         $\new_transcription_rate(Q) = \transcription_rate \frac{q}{q+K}$
 
         Parameters:
@@ -470,7 +483,8 @@ class Molecule(MoleculeLike):
             k: float
                 Half-maximal activation constant
             c: float
-                Hill coefficient for fixing steepness of the activation curve. Default value is 1 for linear activation
+                Hill coefficient for fixing steepness of the activation curve.
+                Default value is 1 for linear activation
 
         Returns:
             float: The new creation rate of the molecule
@@ -575,7 +589,11 @@ class Complex(MoleculeLike):
         Returns:
             int: The number of molecules left after degradation
         """
-        count_diff = self.express(self.degradation_rate, dt, from_count=self.count)
+        count_diff = self.express(
+            self.degradation_rate,
+            dt,
+            from_count=self.count,
+        )
         return count_diff
 
     def formation(self, molecules: List[int], dt: int = None) -> List[int]:
@@ -610,13 +628,13 @@ class Complex(MoleculeLike):
 
 def construct_path(path: str = None, fname: str = None) -> str:
     """
-    Construct the path to the file. If the path is not provided, the current working directory is used.
+    Construct the path to the file. If the path is not provided, the current
+    working directory is used.
 
     Parameters:
 
     """
     path = path or Path.cwd()
-    # TODO: check if it's better to keep folder+path construction here or if take the whole path from cli
     fname = fname or "init_state.yaml"
     fpath = Path(path).joinpath("states", fname)
     if fpath.suffix != ".yaml":
@@ -652,19 +670,23 @@ def fast_random_occurrence(expression_rate: float, from_count: int) -> np.ndarra
 
 def get_args_dict() -> dict:
     """
-    Parses command-line arguments provided by the user and returns them as a dictionary.
+    Parses command-line arguments provided by the user and returns
+    them as a dictionary.
 
     This function defines the following arguments:
     - `--initial-state` (`-i`): str, required
-        Path to the initial state file (.yaml) that defines the simulation's starting conditions.
+        Path to the initial state file (.yaml) that defines the
+        simulation's starting conditions.
     - `--trajectories` (`-t`): int, optional, default=5
         Number of trajectories for the simulation.
     - `--steps` (`-s`): int, optional, default=100
         Number of steps to run in each trajectory.
     - `--output-folder` (`-o`): str, optional, default="output"
-        Path to the folder where the simulation's output files (.npy and .png) will be saved.
+        Path to the folder where the simulation's
+        output files (.npy and .png) will be saved.
 
-    :return: dict - A dictionary containing parsed arguments with argument names as keys and user-provided values.
+    :return: dict - A dictionary containing parsed arguments with argument
+        names as keys and user-provided values.
     """
     # defining program description
     description = "run gillespie simulation"
@@ -714,7 +736,8 @@ def get_args_dict() -> dict:
         type=str,
         required=False,
         default="output",
-        help="defines path to output folder (save .npy and .png simulation plots)",
+        help="""defines path to output folder
+            (save .npy and .png simulation plots)""",
     )
 
     # creating arguments dictionary
@@ -726,19 +749,23 @@ def get_args_dict() -> dict:
 
 def main():
     """
-    Coordinates the execution of the simulation based on command-line arguments.
+    Coordinates the execution of the simulation based on command-line
+    arguments.
 
     This function performs the following:
     - Parses arguments using `get_args_dict`.
-    - Initializes the initial state using the `State` and `State_Machine` classes.
-    - Runs the simulation with parameters for the number of trajectories and steps.
+    - Initializes the initial state using the
+        `State` and `State_Machine` classes.
+    - Runs the simulation with parameters for
+        the number of trajectories and steps.
     - Plots and saves the simulation results if an output folder is specified.
 
     Workflow:
     1. Parse arguments to retrieve:
         - `input_path`: Path to the initial state file.
         - `output_folder`: Path where outputs will be saved.
-        - `save`: Boolean indicating whether to save outputs based on `output_folder`.
+        - `save`:
+            Boolean indicating whether to save outputs based on `output_folder`
         - `trajectories`: Number of trajectories to simulate.
         - `steps`: Number of steps in each trajectory.
     2. Run simulation using `State` and `State_Machine` classes.
@@ -758,8 +785,11 @@ def main():
     init_state_path = construct_path(fname=input_path)
     start_state = State(init_state_path)
     simulator = State_Machine(state=start_state)
-    results = simulator.run(
-        steps=steps, trajectories=trajectories, save_path=output_folder, save=save
+    simulator.run(
+        steps=steps,
+        trajectories=trajectories,
+        save_path=output_folder,
+        save=save,
     )
 
     # plotting/saving simulation
