@@ -1,4 +1,5 @@
-# cli arg parsing
+from __future__ import annotations
+from typing import List, Dict, Optional, Union
 from argparse import ArgumentParser
 import numpy as np
 from numba import njit, prange
@@ -12,8 +13,8 @@ import copy
 class State_Machine:
     def __init__(
         self,
-        innit_state_path: str = None,
-        state=None,
+        init_state_path: Optional[str] = None,
+        state: Optional[State] = None,
         dt: int = 1,
     ):
         """
@@ -27,19 +28,21 @@ class State_Machine:
             dt: int
                 The time step
         """
-        if innit_state_path and state is not None:
-            raise ValueError(
-                """init_state_path and state
-                            cannot be provided at the same"""
-            )
-        if innit_state_path:
-            self.state = State(innit_state_path)
-        else:
-            self.state = state
-        self.path = self.state.path.parent
-        self.dt = dt
-        self.times = None
-        self.count_counts = None
+        if init_state_path is not None and state is not None:
+            if state.path != init_state_path:
+                raise ValueError(
+                    f"""Provided initial state path and state object do not
+                        have the same path.
+                        init_state_path: {init_state_path}
+                        state.path: {state.path}"""
+                )
+        init_state_path = construct_path(init_state_path)
+        self.state: State = State(init_state_path)
+
+        self.path: Path = self.state.path.parent
+        self.dt: int = dt
+        self.times: Optional[np.ndarray] = None
+        self.molecule_counts: Optional[np.ndarray] = None
 
     def save_runs(
         self,
@@ -119,7 +122,7 @@ class State_Machine:
         self,
         example: bool = False,
         scale: str = "linear",
-        save_folder: str = None,
+        save_folder: Optional[str] = None,
     ) -> None:
         """
         Plot the state of the cell.
@@ -166,8 +169,6 @@ class State_Machine:
         if save_folder is not None:
             save_folder = Path(save_folder)
             save_folder.mkdir(parents=True, exist_ok=True)
-
-            # defining save name/path
             save_name = "simulation_plot.png"
             save_path = save_folder.joinpath(save_name)
             plt.savefig(save_path)
@@ -473,7 +474,7 @@ class Molecule(MoleculeLike):
                 If True, the transcription_rate value is constant
             k: Optional[float]
                 Half-maximal activation constant
-            c: float
+            c: Optional[float]
                 Hill coefficient for fixing steepness of the activation curve.
                 Default value is 1 for linear activation
         """
@@ -489,7 +490,6 @@ class Molecule(MoleculeLike):
         """
         General version of the rate equation for the creation of a molecule
         from nothing.
-        $\new_transcription_rate(Q) = \transcription_rate \frac{q}{q+K}$
 
         Parameters:
             q: int
@@ -497,8 +497,6 @@ class Molecule(MoleculeLike):
             k: float
                 Half-maximal activation constant
             c: float
-                Hill coefficient for fixing steepness of the activation curve.
-                Default value is 1 for linear activation
                 Hill coefficient for fixing steepness of the activation curve.
                 Default value is 1 for linear activation
 
@@ -644,12 +642,17 @@ def construct_path(path: Optional[str] = None) -> Path:
     working directory is used.
 
     Parameters:
+        path (Optional[str]): The path to the file
 
+    Returns:
+        Path: The constructed path
     """
-    path = path or Path.cwd()
-    fname = fname or "init_state.yaml"
-    fpath = Path(path).joinpath("states", fname)
-    if fpath.suffix != ".yaml":
+    if not path:
+        state_folder = "states"
+        fname = "init_state.yaml"
+        path = Path.cwd().joinpath(state_folder, fname)
+
+    if path.suffix != ".yaml":
         raise ValueError("File must be a yaml file")
     return path
 
@@ -785,10 +788,7 @@ def main() -> None:
     trajectories = args_dict["trajectories"]
     steps = args_dict["steps"]
 
-    # running simulation
-    init_state_path = construct_path(fname=input_path)
-    start_state = State(init_state_path)
-    simulator = State_Machine(state=start_state)
+    simulator = State_Machine(init_state_path=input_path)
     simulator.run(
         steps=steps,
         trajectories=trajectories,
