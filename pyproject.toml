@@ -10,25 +10,12 @@ readme = "README.md"
 license = {text = "MIT"}
 authors = [
     {name = "Sergej Maul", email = "maulser@gmail.com"},
-    {name = "Angelo Angonezi", email = "--"},
-    {name = "Aurèl Leslauer", email = "--"},
-    {name = "Deniz Kaymak", email = "--"},
-    {name = "Noa Bar Zohar", email = "--"}
+    {name = "Angelo Angonezi", email = "angelo.angonezi@unibas.ch"},
+    {name = "Aurèl Leslauer", email = "aurele.lesslauer@unibas.ch"},
+    {name = "Deniz Kaymak", email = "deniz.kaymak@unibas.ch"},
+    {name = "Noa Bar Zohar", email = "noa.barzohar@unibas.ch"}
 ]
 dependencies = [
-    "contourpy>=1.3.0",
-    "cycler>=0.12.1",
-    "fonttools>=4.54.1",
-    "kiwisolver>=1.4.7",
-    "llvmlite>=0.43.0",
-    "matplotlib>=3.9.2",
-    "numba>=0.60.0",
-    "numpy>=2.0.2",
-    "pillow>=11.0.0",
-    "pyparsing>=3.2.0",
-    "pywin32>=307",
-    "PyYAML>=6.0.2",
-    "tqdm>=4.66.6"
     "contourpy>=1.3.0",
     "cycler>=0.12.1",
     "fonttools>=4.54.1",
@@ -46,12 +33,6 @@ dependencies = [
 
 [project.optional-dependencies]
 dev = [
-    "pytest",
-    "coverage",
-    "flake8",
-    "flake8-docstrings",
-    "mypy",
-    "pylint"
     "pytest",
     "coverage",
     "flake8",
