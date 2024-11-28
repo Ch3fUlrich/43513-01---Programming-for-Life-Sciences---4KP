@@ -1,4 +1,6 @@
 from __future__ import annotations
+from pathlib import Path
+import copy
 from typing import List, Dict, Optional, Union
 from argparse import ArgumentParser
 import numpy as np
@@ -6,11 +8,13 @@ from numba import njit, prange
 import matplotlib.pyplot as plt
 from tqdm import trange
 import yaml
-from pathlib import Path
-import copy
 
 
-class State_Machine:
+class StateMachine:
+    """
+    For tracking the state of the cell over time.
+    """
+
     def __init__(
         self,
         init_state_path: Optional[str] = None,
@@ -393,6 +397,10 @@ class State:
 
 
 class MoleculeLike:
+    """
+    A molecule like object in a cell.
+    """
+
     def __init__(self, name: str, count: int):
         """
         A molecule like object in a cell
@@ -445,6 +453,10 @@ class MoleculeLike:
 
 
 class Molecule(MoleculeLike):
+    """
+    A molecule object in a cell.
+    """
+
     def __init__(
         self,
         name: str,
@@ -763,7 +775,7 @@ def main() -> None:
     This function performs the following:
     - Parses arguments using `get_args_dict`.
     - Initializes the initial state using the
-        `State` and `State_Machine` classes.
+        `State` and `StateMachine` classes.
     - Runs the simulation with parameters for
         the number of trajectories and steps.
     - Plots and saves the simulation results if an output folder is specified.
@@ -776,7 +788,7 @@ def main() -> None:
             Boolean indicating whether to save outputs based on `output_folder`
         - `trajectories`: Number of trajectories to simulate.
         - `steps`: Number of steps in each trajectory.
-    2. Run simulation using `State` and `State_Machine` classes.
+    2. Run simulation using `State` and `StateMachine` classes.
     3. Plot and save the simulation output.
 
     :return: None
@@ -788,7 +800,7 @@ def main() -> None:
     trajectories = args_dict["trajectories"]
     steps = args_dict["steps"]
 
-    simulator = State_Machine(init_state_path=input_path)
+    simulator = StateMachine(init_state_path=input_path)
     simulator.run(
         steps=steps,
         trajectories=trajectories,
