@@ -255,7 +255,7 @@ class State_Machine:
             logger.warning(
                 "Negative values were detected in one or more trajectories. "
                 "Please reassess the rate parameters to ensure realistic behavior."
-                "If decay rates are higher than transcription/translationj rates, molecules may deplete too quickly!"
+                "If decay rates are higher than transcription/translation rates, molecules may deplete too quickly!"
             )
         else:
             logger.info("No negative counts were observed")
@@ -319,9 +319,9 @@ class State_Machine:
             ):
                 molecule_count = avg_counts[:, molecule_num]
                 molecule_std = std_counts[:, molecule_num]
-                plt.plot(mean_times, molecule_count, label=molecule_name)  # Added mean_times for x-axis
+                plt.plot(mean_times, molecule_count, label=molecule_name) 
                 
-                if show_confidence:  # Confidence interval toggle
+                if show_confidence:  
                     plt.fill_between(
                         mean_times,
                         molecule_count - molecule_std,
@@ -621,11 +621,6 @@ class State:
             if molecule.count < 0:
                 logger.warning(f"Correcting negative count for {molecule_name}: {molecule.count} -> 0.")
                 molecule.count = 0
-
-        # Debugging Output
-        # if self.time == 1000:
-        #    self.print(short=True)
-        #    print("1000")
 
         self.molecules = m
         self.create_state_dict(self.state_dict["time"], save=False)
@@ -1088,7 +1083,7 @@ def construct_path(path: Optional[str] = None, fname: Optional[str] = None) -> P
     ValueError
         If the constructed file path does not have a ".yaml" extension.
     """
-    path = Path(path or Path.cwd()).joinpath("states")  # Ensure 'states' directory is included
+    path = Path(path or Path.cwd()).joinpath("states")
     fname = fname or "init_state.yaml"
     fpath = path.joinpath(fname)
 
