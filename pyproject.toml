@@ -11,7 +11,7 @@ license = {text = "MIT"}
 authors = [
     {name = "Sergej Maul", email = "maulser@gmail.com"},
     {name = "Angelo Angonezi", email = "angelo.angonezi@unibas.ch"},
-    {name = "Aurèl Leslauer", email = "aurele.lesslauer@unibas.ch"},
+    {name = "Aurèle Lesslauer", email = "aurele.lesslauer@unibas.ch"},
     {name = "Deniz Kaymak", email = "d.kaymak_6@hotmail.de"},
     {name = "Noa Bar Zohar", email = "noa.barzohar@unibas.ch"}
 ]
