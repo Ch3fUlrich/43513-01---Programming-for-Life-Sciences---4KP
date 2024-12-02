@@ -505,8 +505,11 @@ class State:
         protein_decayed = m["protein"].decay(dt)
 
         # complex
+        available_miRNA = m["miRNA"].count - miRNA_decayed
+        available_mRNA = m["mRNA"].count - mRNA_decayed
         formed_complex, used_molecules = m["complex"].formation(
-            [m["miRNA"].count, m["mRNA"].count], dt
+            [available_miRNA, available_mRNA],
+            dt,
         )
         complex_degraded = m["complex"].degradation(dt)
 
@@ -529,7 +532,6 @@ class State:
 
         for molecule_name, m_class in m.items():
             if m_class.count < 0:
-                # TIXME: Find the reason behind this bug
                 raise ValueError(f"Negative count for {molecule_name}")
 
         self.molecules = m
@@ -591,8 +593,7 @@ class State:
         None
         """
         current_time = self.time
-        output = f"""------------------------
-                    State(t={current_time})\n"""
+        output = f"""------------------------\nState(t={current_time})\n"""
         if full:
             for name, key_values in self.state_dict.items():
                 if isinstance(key_values, dict):
@@ -606,6 +607,7 @@ class State:
         else:
             for molecule_name, molecule in self.molecules.items():
                 output += f"-> {molecule_name}: {molecule.count}\n"
+        print(output)
         return output
 
 
@@ -810,7 +812,12 @@ class Molecule(MoleculeLike):
             The number of molecules left after decay
         """
         dt = dt or 1
-        return self.express(self.decay_rate, dt, from_count=self.count)
+        decayed_molecules = self.express(self.decay_rate, dt, from_count=self.count)
+        if decayed_molecules < 0:
+            raise ValueError("Negative count after decay")
+        elif decayed_molecules > self.count:
+            raise ValueError("Decayed molecules exceed initial count")
+        return decayed_molecules
 
     def transcription(
         self,
