@@ -132,7 +132,7 @@ class StateMachine:
             logger.info("Results saved successfully.")
         except Exception as e:
             logger.error(f"Failed to save results: {e}")
-            raise
+            raise MemoryError(f"Failed to save results: {e}") from e
 
     def reset(self) -> None:
         """
@@ -351,7 +351,7 @@ class State:
             do not point to a valid `.yaml` file.
         """
         if self.path:
-            with open(self.path, "r", encoding="UTF-16") as file:
+            with open(self.path, "r", encoding="UTF-8") as file:
                 state = yaml.safe_load(file)
         else:
             raise ValueError("Path to initial state is not defined")
@@ -572,7 +572,7 @@ class State:
             )
         return counts
 
-    def print(self, short: bool = False, full: bool = False) -> None:
+    def print(self, short: bool = False, full: bool = False) -> str:
         """
         Print the current state of the cell.
 
@@ -591,22 +591,22 @@ class State:
         None
         """
         current_time = self.time
-        print("------------------------")
-        print(f"State(t={current_time})")
+        output = f"""------------------------
+                    State(t={current_time})\n"""
         if full:
             for name, key_values in self.state_dict.items():
                 if isinstance(key_values, dict):
-                    print(f"- {name}:")
+                    output += f"- {name}:\n"
                     for attribute, value in key_values.items():
-                        print(f"   - {attribute}: {value}")
+                        output += f"   - {attribute}: {value}\n"
                 else:
-                    print(f"- {name}: {key_values}")
+                    output += f"- {name}: {key_values}\n"
         elif short:
-            print(self.extract_molecule_counts())
+            output += f"{self.extract_molecule_counts()}"
         else:
-
             for molecule_name, molecule in self.molecules.items():
-                print(f"-> {molecule_name}: {molecule.count}")
+                output += f"-> {molecule_name}: {molecule.count}\n"
+        return output
 
 
 class MoleculeLike:
@@ -1006,11 +1006,12 @@ def construct_path(path: Optional[str] = None) -> Path:
         If the constructed file path does not have a ".yaml" extension.
     """
     if not path:
+        project_folder = Path(__file__).parent
         state_folder = "states"
         fname = "init_state.yaml"
-        path = Path.cwd().joinpath(state_folder, fname)
+        path = project_folder.joinpath(state_folder, fname)
 
-    if path.suffix != ".yaml":
+    if Path(path).suffix != ".yaml":
         raise ValueError("File must be a yaml file")
     return path
 
