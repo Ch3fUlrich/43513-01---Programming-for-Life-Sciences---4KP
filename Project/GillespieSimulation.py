@@ -22,7 +22,7 @@ try:
     import matplotlib.pyplot as plt
     from tqdm import trange
     import yaml
-    from classes.State import StateMachine
+    from Project.classes.State import StateMachine
 
     logger.info("Successfully loaded all required libraries.")
 except ImportError as e:
