@@ -6,6 +6,7 @@
 *logs
 *temp
 .idea/
+Repository.code-workspace
 *output
 .pytest_cache/
 .coverage
