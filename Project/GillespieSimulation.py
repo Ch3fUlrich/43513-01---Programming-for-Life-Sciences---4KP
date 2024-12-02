@@ -183,7 +183,7 @@ class StateMachine:
         """
         if trajectories <= 0 or steps <= 0:
             raise ValueError("Trajectories and steps must be positive integers.")
-    
+
         logger.info(
             f"""Starting simulation: {trajectories}
             trajectories, {steps} steps each."""
@@ -192,13 +192,15 @@ class StateMachine:
         steps = steps + 1
         molecule_counts = np.zeros((trajectories, steps, n_molecules))
         times = np.zeros((trajectories, steps))
-        negative_values_detected = False 
+        negative_values_detected = False
 
         for i in trange(trajectories, desc="Simulating trajectories"):
             logger.info(f"Running trajectory {i + 1}/{trajectories}...")
             initial_counts = self.state.extract_molecule_counts()
             if initial_counts is None:
-                raise ValueError(f"Failed to extract initial molecule counts for trajectory {i + 1}.")
+                raise ValueError(
+                    f"Failed to extract initial molecule counts for trajectory {i + 1}."
+                )
             molecule_counts[i, 0] = initial_counts
             times[i, 0] = 0
 
@@ -207,13 +209,17 @@ class StateMachine:
                 times[i, j] = self.state.time
                 counts = self.state.extract_molecule_counts()
                 if counts is None:
-                    raise ValueError(f"Failed to extract molecule counts at step {j} in trajectory {i + 1}.")
+                    raise ValueError(
+                        f"Failed to extract molecule counts at step {j} in trajectory {i + 1}."
+                    )
                 molecule_counts[i, j] = counts
 
             # Check for negative counts
             if np.any(counts < 0):
                 negative_values_detected = True
-                for molecule_num, molecule_name in enumerate(self.state.molecules.keys()):
+                for molecule_num, molecule_name in enumerate(
+                    self.state.molecules.keys()
+                ):
                     if counts[molecule_num] < 0:
                         logger.warning(
                             f"Negative count detected in trajectory {i + 1}, step {j}, "
@@ -232,7 +238,6 @@ class StateMachine:
         else:
             logger.info("No negative counts were observed")
 
-
         if save:
             if not saven_fname:
                 saven_fname = f"molecule_counts_{steps-1}_{trajectories}.npy"
@@ -242,14 +247,13 @@ class StateMachine:
         self.times = times
         return self.molecule_counts
 
-
     def plot(
         self,
         example: bool = False,
         scale: str = "linear",
         save_folder: Optional[str] = None,
         show_confidence: bool = True,  # Option to toggle confidence intervals
-        dynamic_filename: bool = True  # Option to use dynamic filenames
+        dynamic_filename: bool = True,  # Option to use dynamic filenames
     ) -> None:
         """
         Plot the simulation results (state of the system).
@@ -266,7 +270,7 @@ class StateMachine:
             If True, adds confidence intervals to the plot. Default is True.
         dynamic_filename: bool
             If True, generates a filename based on simulation parameters. Default is True.
-            
+
         Returns
         -------
         None
@@ -290,18 +294,20 @@ class StateMachine:
             ):
                 molecule_count = avg_counts[:, molecule_num]
                 molecule_std = std_counts[:, molecule_num]
-                plt.plot(mean_times, molecule_count, label=molecule_name) 
-                
-                if show_confidence:  
+                plt.plot(mean_times, molecule_count, label=molecule_name)
+
+                if show_confidence:
                     plt.fill_between(
                         mean_times,
                         molecule_count - molecule_std,
                         molecule_count + molecule_std,
                         alpha=0.2,
                     )
-        plt.title(f"Simulation of Gene Regulatory Network: {self.molecule_counts.shape[0]} Trajectories with {self.molecule_counts.shape[1] - 1} Steps") 
-        plt.xlabel("Time (arbitrary units)") 
-        plt.ylabel("Molecule Count (absolute numbers)")  
+        plt.title(
+            f"Simulation of Gene Regulatory Network: {self.molecule_counts.shape[0]} Trajectories with {self.molecule_counts.shape[1] - 1} Steps"
+        )
+        plt.xlabel("Time (arbitrary units)")
+        plt.ylabel("Molecule Count (absolute numbers)")
         plt.yscale(scale)
         plt.legend()
 
@@ -314,10 +320,12 @@ class StateMachine:
 
             # defining save name/path
             if dynamic_filename:
-                save_name = f"simulation_plot_{scale}_{'example' if example else 'all'}.png"
+                save_name = (
+                    f"simulation_plot_{scale}_{'example' if example else 'all'}.png"
+                )
             else:
                 save_name = "simulation_plot.png"
-            
+
             save_path = save_folder.joinpath(save_name)
 
             # saving plot
@@ -391,7 +399,7 @@ class State:
         self.path: Path = Path(path)
         self.state_dict: Dict[str, Union[str, int, float, List[int]]] = None
         self.time: int = None
-        self.molecules: Dict[str, Union['Molecule', 'Complex']] = None
+        self.molecules: Dict[str, Union["Molecule", "Complex"]] = None
         self.set_init_state()
         logger.info("State initialization completed successfully.")
 
@@ -517,7 +525,7 @@ class State:
                 molecules[name] = Molecule(name=name, **molecule_dict)
         return molecules
 
-    def next_state(self, dt: int = 1) -> 'State':
+    def next_state(self, dt: int = 1) -> "State":
         """
         Update the simulation time by one time step.
 
@@ -543,7 +551,7 @@ class State:
 
         # 2. Calculate changes in time for each molecule
         m = copy.deepcopy(self.molecules)
-# Perform molecule updates
+        # Perform molecule updates
         for molecule_name, molecule in m.items():
             # Log the state of the molecule before updating
             logger.debug(f"Before update - {molecule_name}: {molecule.count}")
@@ -578,8 +586,12 @@ class State:
         complex_degraded = m["complex"].degradation(dt)
 
         # update molecule counts with safeguards
-        m["TF_mRNA"].count = max(0, m["TF_mRNA"].count + TF_mRNA_trancribed - TF_mRNA_decayed)
-        m["TF_protein"].count = max(0, m["TF_protein"].count + TF_mRNA_translated - TF_protein_decayed)
+        m["TF_mRNA"].count = max(
+            0, m["TF_mRNA"].count + TF_mRNA_trancribed - TF_mRNA_decayed
+        )
+        m["TF_protein"].count = max(
+            0, m["TF_protein"].count + TF_mRNA_translated - TF_protein_decayed
+        )
         m["miRNA"].count = max(
             0,
             m["miRNA"].count
@@ -590,10 +602,7 @@ class State:
         )
         m["mRNA"].count = max(
             0,
-            m["mRNA"].count
-            + mRNA_trancribed
-            - mRNA_decayed
-            - used_molecules[1],
+            m["mRNA"].count + mRNA_trancribed - mRNA_decayed - used_molecules[1],
         )
         m["protein"].count = m["protein"].count + mRNA_translated - protein_decayed
         m["complex"].count = m["complex"].count + formed_complex - complex_degraded
@@ -1096,9 +1105,7 @@ def construct_path(path: Optional[str] = None, fname: Optional[str] = None) -> P
 
     if Path(path).suffix != ".yaml":
         raise ValueError("File must be a yaml file")
-    return fpath
-
-
+    return path
 
 
 @njit(parallel=True)
@@ -1124,7 +1131,7 @@ def fast_random_occurrence(
     int
         The total number of molecules that are expressed.
     """
-    
+
     # Precompute the cumulative probability
     cumulative_prob = 1 - expression_rate
     occurrences = np.zeros(from_count, dtype=np.int32)
@@ -1252,7 +1259,7 @@ def main() -> None:
     save = output_folder is not None
     trajectories = args_dict["trajectories"]
     steps = args_dict["steps"]
-    
+
     # Input validation
     if steps <= 0:
         raise ValueError("Number of steps must be a positive integer.")
