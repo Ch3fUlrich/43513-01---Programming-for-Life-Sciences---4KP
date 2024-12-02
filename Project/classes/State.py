@@ -22,6 +22,8 @@ try:
     import matplotlib.pyplot as plt
     from tqdm import trange
     import yaml
+    from Project.classes import Molecule, Complex
+    from Project.utils import construct_path
 
     logger.info("Successfully loaded all required libraries.")
 except ImportError as e:

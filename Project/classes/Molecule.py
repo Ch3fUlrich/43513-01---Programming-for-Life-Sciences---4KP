@@ -22,6 +22,7 @@ try:
     import matplotlib.pyplot as plt
     from tqdm import trange
     import yaml
+    from Project.utils import fast_random_occurrence
 
     logger.info("Successfully loaded all required libraries.")
 except ImportError as e:
