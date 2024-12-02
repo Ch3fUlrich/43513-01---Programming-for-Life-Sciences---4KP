@@ -9,3 +9,9 @@
 *output
 .pytest_cache/
 .coverage
+*.egg-info
+*.egg
+*.pyc
+*.pyo
+*.pyd
+*.log

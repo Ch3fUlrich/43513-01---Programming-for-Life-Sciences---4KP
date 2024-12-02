@@ -3,10 +3,11 @@ requires = ["setuptools>=42", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "gillespie_simulation"
+name = "GillespieSimulation"
 version = "0.1.0"
 description = "A package for simulating stochastic chemical reactions using the Gillespie algorithm."
 readme = "README.md"
+requires-python = ">=3.10"
 license = {text = "MIT"}
 authors = [
     {name = "Sergej Maul", email = "maulser@gmail.com"},
