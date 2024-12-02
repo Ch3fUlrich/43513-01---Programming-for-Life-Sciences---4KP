@@ -26,7 +26,7 @@ try:
     logger.info("Successfully loaded all required libraries.")
 except ImportError as e:
     logger.error(f"Failed to import required libraries: {e}")
-    raise ImportError(f"Failed to import required libraries: {e}")
+    raise ImportError(f"Failed to import required libraries: {e}") from e
 
 
 class StateMachine:
@@ -229,7 +229,7 @@ class StateMachine:
         """
         if example:
             rand_num = np.random.randint(0, self.molecule_counts.shape[0])
-            for molecule_num, (molecule_name, molecule) in enumerate(
+            for molecule_num, (molecule_name, _) in enumerate(
                 self.state.molecules.items()
             ):
                 plt.plot(
@@ -351,7 +351,7 @@ class State:
             do not point to a valid `.yaml` file.
         """
         if self.path:
-            with open(self.path, "r") as file:
+            with open(self.path, "r", encoding="UTF-16") as file:
                 state = yaml.safe_load(file)
         else:
             raise ValueError("Path to initial state is not defined")
@@ -404,7 +404,7 @@ class State:
         -------
         None
         """
-        with open(self.path, "w") as file:
+        with open(self.path, "w", encoding="UTF-16") as file:
             yaml.dump(self.state_dict, file)
 
     def create_state_dict(
@@ -430,7 +430,7 @@ class State:
             The updated state dictionary.
         """
         state_dict: Dict[str, Union[str, int, float, List[int]]] = {"time": t}
-        for molecule_name, molecule in self.molecules.items():
+        for _, molecule in self.molecules.items():
             molecule_dict = molecule.create_molecule_dict()
             state_dict.update(molecule_dict)
         if save:
@@ -1180,30 +1180,4 @@ def main() -> None:
 
 
 if __name__ == "__main__":
-    """
-    Simulation Framework for the stochastic dynamics of a simple
-    gene regulatory network.
-
-    This module provides a framework for simulating cellular processes using a
-    state machine approach. The framework includes:
-    - Classes for representing molecules, molecular complexes,
-        and simulation states.
-    - Functions for argument parsing, path construction, and
-        random occurrence simulations.
-    - A main function that coordinates the execution of simulations.
-
-    Modules
-    -------
-    - `StateMachine`: Drives the simulation workflow.
-    - `State`: Manages the current state of the cell,
-    including molecule counts.
-    - `Molecule` and `Complex`: Represent individual molecules and complexes.
-    - Utility functions: Includes argument parsing, file path construction,
-        and a fast random occurrence method for molecule events.
-
-    Usage
-    -----
-    Run the simulation with appropriate command-line arguments:
-        python simulation.py -i initial_state.yaml -t 100 -s 100 -o ./output
-    """
     main()
