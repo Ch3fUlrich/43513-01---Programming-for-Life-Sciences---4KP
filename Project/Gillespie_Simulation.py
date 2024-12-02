@@ -69,7 +69,7 @@ except ImportError as e:
     logger.error(f"Failed to import required libraries: {e}")
     raise
 
-    
+
 class State_Machine:
     """
     Represents the state machine that drives the simulation.
@@ -648,7 +648,7 @@ class MoleculeLike:
     def __init__(self, name: str, count: int) -> None :
         """
         Initialize a molecule-like object.
-    
+
         Parameters
         ----------
         name: str
@@ -682,7 +682,7 @@ class MoleculeLike:
     ) -> int:
         """
         Simulates the expression or decay of a molecule over time. Random choice for every molecule.
-        
+
         Parameters
         ----------
         expression_rate: int
@@ -694,7 +694,7 @@ class MoleculeLike:
 
         Returns
         -------
-        int: 
+        int:
             The change in the number of molecules left after expression/decay
         """
         dt = dt or 1
@@ -706,7 +706,7 @@ class Molecule(MoleculeLike):
     """
     Represents a molecule in a cell simulation.
 
-    Extends `MoleculeLike` to include additional attributes for transcription, 
+    Extends `MoleculeLike` to include additional attributes for transcription,
     translation, and decay processes.
 
     Attributes
@@ -781,7 +781,7 @@ class Molecule(MoleculeLike):
         """
         Calculate the rate of molecule creation using a generalized Hill function.
 
-        This method computes the creation rate of a molecule based on the number of molecules (`q`), the half-maximal activation constant (`k`), and the steepness 
+        This method computes the creation rate of a molecule based on the number of molecules (`q`), the half-maximal activation constant (`k`), and the steepness
         of the activation curve controlled by the Hill coefficient (`c`). The equation is given by:
 
         new_transcription_rate(Q) = transcription_rate * (q^c / (q^c + k^c))
@@ -793,11 +793,11 @@ class Molecule(MoleculeLike):
         k: float
             Half-maximal activation constant
         c: float
-            The Hill coefficient, controlling the steepness of the activation curve. 
+            The Hill coefficient, controlling the steepness of the activation curve.
             Default is 1, which corresponds to linear activation.
         Returns
         -------
-        float: 
+        float:
             The new creation rate of the molecule
         """
         c = c or 1
@@ -807,7 +807,7 @@ class Molecule(MoleculeLike):
     def decay(self, dt: Optional[int] = None) -> int:
         """
         Decay of a molecule over time
-        
+
         Parameters:
         dt: Optional[int]
             The time step
@@ -815,7 +815,7 @@ class Molecule(MoleculeLike):
 
         Returns
         -------
-        int: 
+        int:
             The number of molecules left after decay
         """
         dt = dt or 1
@@ -832,14 +832,14 @@ class Molecule(MoleculeLike):
         Parameters
         ----------
         protein: int, optional
-            The number of protein molecules influencing transcription. If the transcription rate is 
+            The number of protein molecules influencing transcription. If the transcription rate is
             non-constant, this value must be provided.
         dt: int
             The time step over which transcription is simulated. Defaults to 1 if not provided.
 
         Returns
         -------
-        int: 
+        int:
             The number of molecules transcribed.
 
         Raises
@@ -866,12 +866,12 @@ class Molecule(MoleculeLike):
         Parameters
         ----------
         dt: int, optional
-            The time step over which translation is simulated. If not provided, 
+            The time step over which translation is simulated. If not provided,
             it defaults to 1.
 
         Returns
         -------
-        int: 
+        int:
             The number of molecules translated.
         """
         return self.express(self.translation_rate, dt, from_count=self.count)
@@ -881,7 +881,7 @@ class Complex(MoleculeLike):
     """
     Represents complex-formation in the simulation.
 
-    Extends `MoleculeLike` to include additional attributes for formation 
+    Extends `MoleculeLike` to include additional attributes for formation
     and degradation processes.
 
     Attributes
@@ -932,7 +932,7 @@ class Complex(MoleculeLike):
     def degradation(self, dt: Optional[int] = None) -> int:
         """
         Simulates degradation of a molecule over time
-        
+
         Parameters
         ----------
         dt: int, optional
@@ -940,7 +940,7 @@ class Complex(MoleculeLike):
 
         Returns
         -------
-        int: 
+        int:
             The number of molecules degraded.
             #### clarify whether the return value represents the number of molecules degraded or remaining
         """
@@ -959,7 +959,7 @@ class Complex(MoleculeLike):
         """
         Simulates the formation of a complex over time.
         The complex is formed between multiple molecules in a 1:1 relationship.
-        
+
         Parameters
         ----------
         molecules: List[int]
@@ -984,9 +984,11 @@ class Complex(MoleculeLike):
         return formed_complexes, other_count_change
 
 
-def construct_path(path: Optional[str] = None) -> Path:
+def construct_path(path: Optional[str] = None,
+                   fname: Optional[str] = None
+                   ) -> Path:
     """
-    Constructs a file path for suimulation states.
+    Constructs a file path for simulation states.
     If the path is not provided, the current working directory is used.
 
     Parameters
