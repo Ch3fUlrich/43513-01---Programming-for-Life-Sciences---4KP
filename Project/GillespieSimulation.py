@@ -181,6 +181,9 @@ class StateMachine:
             A 3D array containing the molecule counts at each time
             step for all trajectories.
         """
+        if trajectories <= 0 or steps <= 0:
+            raise ValueError("Trajectories and steps must be positive integers.")
+    
         logger.info(
             f"""Starting simulation: {trajectories}
             trajectories, {steps} steps each."""
@@ -188,28 +191,65 @@ class StateMachine:
         n_molecules = len(self.state.molecules)
         steps = steps + 1
         molecule_counts = np.zeros((trajectories, steps, n_molecules))
-        molecule_counts[0, 0] = self.state.extract_molecule_counts()
         times = np.zeros((trajectories, steps))
-        for i in trange(trajectories):
+        negative_values_detected = False 
+
+        for i in trange(trajectories, desc="Simulating trajectories"):
             logger.info(f"Running trajectory {i + 1}/{trajectories}...")
+            initial_counts = self.state.extract_molecule_counts()
+            if initial_counts is None:
+                raise ValueError(f"Failed to extract initial molecule counts for trajectory {i + 1}.")
+            molecule_counts[i, 0] = initial_counts
+            times[i, 0] = 0
+
             for j in range(1, steps):
                 self.state.next_state(self.dt)
                 times[i, j] = self.state.time
-                molecule_counts[i, j] = self.state.extract_molecule_counts()
+                counts = self.state.extract_molecule_counts()
+                if counts is None:
+                    raise ValueError(f"Failed to extract molecule counts at step {j} in trajectory {i + 1}.")
+                molecule_counts[i, j] = counts
+
+            # Check for negative counts
+            if np.any(counts < 0):
+                negative_values_detected = True
+                for molecule_num, molecule_name in enumerate(self.state.molecules.keys()):
+                    if counts[molecule_num] < 0:
+                        logger.warning(
+                            f"Negative count detected in trajectory {i + 1}, step {j}, "
+                            f"molecule '{molecule_name}': count = {counts[molecule_num]}"
+                        )
+
+            # Reset the state for the next trajectory
             self.state.set_init_state()
+
+        if negative_values_detected:
+            logger.warning(
+                "Negative values were detected in one or more trajectories. "
+                "Please reassess the rate parameters to ensure realistic behavior."
+                "If decay rates are higher than transcription/translation rates, molecules may deplete too quickly!"
+            )
+        else:
+            logger.info("No negative counts were observed")
+
+
         if save:
             if not saven_fname:
-                saven_fname = f"molecule_counts_{steps}_{trajectories}.npy"
+                saven_fname = f"molecule_counts_{steps-1}_{trajectories}.npy"
             self.save_runs(molecule_counts, fname=saven_fname, path=save_path)
+
         self.molecule_counts = molecule_counts
         self.times = times
         return self.molecule_counts
+
 
     def plot(
         self,
         example: bool = False,
         scale: str = "linear",
         save_folder: Optional[str] = None,
+        show_confidence: bool = True,  # Option to toggle confidence intervals
+        dynamic_filename: bool = True  # Option to use dynamic filenames
     ) -> None:
         """
         Plot the simulation results (state of the system).
@@ -222,7 +262,11 @@ class StateMachine:
             Scale of the y-axis. Default is "linear".
         save_folder: str
             Directory to save the plot. If None, plot is displayed.
-
+        show_confidence: bool
+            If True, adds confidence intervals to the plot. Default is True.
+        dynamic_filename: bool
+            If True, generates a filename based on simulation parameters. Default is True.
+            
         Returns
         -------
         None
@@ -237,6 +281,7 @@ class StateMachine:
                     label=molecule_name,
                 )
         else:
+            # average over trajectories + confidence intervals
             avg_counts = np.mean(self.molecule_counts, axis=0)
             std_counts = np.std(self.molecule_counts, axis=0)
             mean_times = np.mean(self.times, axis=0)
@@ -245,27 +290,42 @@ class StateMachine:
             ):
                 molecule_count = avg_counts[:, molecule_num]
                 molecule_std = std_counts[:, molecule_num]
-                plt.plot(molecule_count, label=molecule_name)
-                plt.fill_between(
-                    mean_times,
-                    molecule_count - molecule_std,
-                    molecule_count + molecule_std,
-                    alpha=0.2,
-                )
-
+                plt.plot(mean_times, molecule_count, label=molecule_name) 
+                
+                if show_confidence:  
+                    plt.fill_between(
+                        mean_times,
+                        molecule_count - molecule_std,
+                        molecule_count + molecule_std,
+                        alpha=0.2,
+                    )
+        plt.title(f"Simulation of Gene Regulatory Network: {self.molecule_counts.shape[0]} Trajectories with {self.molecule_counts.shape[1] - 1} Steps") 
+        plt.xlabel("Time (arbitrary units)") 
+        plt.ylabel("Molecule Count (absolute numbers)")  
         plt.yscale(scale)
-        plt.xlabel("Time")
-        plt.ylabel(f"Molecule count ({scale})")
         plt.legend()
 
+        # checking if output folder path is valid
         if save_folder is not None:
             save_folder = Path(save_folder)
+
+            # creating folder if it doesn't exist
             save_folder.mkdir(parents=True, exist_ok=True)
-            save_name = "simulation_plot.png"
+
+            # defining save name/path
+            if dynamic_filename:
+                save_name = f"simulation_plot_{scale}_{'example' if example else 'all'}.png"
+            else:
+                save_name = "simulation_plot.png"
+            
             save_path = save_folder.joinpath(save_name)
+
+            # saving plot
             plt.savefig(save_path)
+            logger.info(f"Plot saved to {save_path}")
 
         else:
+            # just showing plot without saving
             plt.show()
 
 
@@ -331,7 +391,7 @@ class State:
         self.path: Path = Path(path)
         self.state_dict: Dict[str, Union[str, int, float, List[int]]] = None
         self.time: int = None
-        self.molecules: Dict[str, Union[Molecule, Complex]] = None
+        self.molecules: Dict[str, Union['Molecule', 'Complex']] = None
         self.set_init_state()
         logger.info("State initialization completed successfully.")
 
@@ -457,7 +517,7 @@ class State:
                 molecules[name] = Molecule(name=name, **molecule_dict)
         return molecules
 
-    def next_state(self, dt: int = 1) -> State:
+    def next_state(self, dt: int = 1) -> 'State':
         """
         Update the simulation time by one time step.
 
@@ -483,6 +543,10 @@ class State:
 
         # 2. Calculate changes in time for each molecule
         m = copy.deepcopy(self.molecules)
+# Perform molecule updates
+        for molecule_name, molecule in m.items():
+            # Log the state of the molecule before updating
+            logger.debug(f"Before update - {molecule_name}: {molecule.count}")
 
         # TF_mRNA
         TF_mRNA_trancribed = m["TF_mRNA"].transcription(dt)
@@ -513,19 +577,23 @@ class State:
         )
         complex_degraded = m["complex"].degradation(dt)
 
-        m["TF_mRNA"].count = m["TF_mRNA"].count + TF_mRNA_trancribed - TF_mRNA_decayed
-        m["TF_protein"].count = (
-            m["TF_protein"].count + TF_mRNA_translated - TF_protein_decayed
-        )
-        m["miRNA"].count = (
+        # update molecule counts with safeguards
+        m["TF_mRNA"].count = max(0, m["TF_mRNA"].count + TF_mRNA_trancribed - TF_mRNA_decayed)
+        m["TF_protein"].count = max(0, m["TF_protein"].count + TF_mRNA_translated - TF_protein_decayed)
+        m["miRNA"].count = max(
+            0,
             m["miRNA"].count
             + miRNA_trancribed
             - miRNA_decayed
             - used_molecules[0]
-            + complex_degraded
+            + complex_degraded,
         )
-        m["mRNA"].count = (
-            m["mRNA"].count + mRNA_trancribed - mRNA_decayed - used_molecules[1]
+        m["mRNA"].count = max(
+            0,
+            m["mRNA"].count
+            + mRNA_trancribed
+            - mRNA_decayed
+            - used_molecules[1],
         )
         m["protein"].count = m["protein"].count + mRNA_translated - protein_decayed
         m["complex"].count = m["complex"].count + formed_complex - complex_degraded
@@ -536,6 +604,7 @@ class State:
 
         self.molecules = m
         self.create_state_dict(self.state_dict["time"], save=False)
+        # self.print(short=True)
         return self
 
     def extract_molecule_counts(
@@ -685,6 +754,14 @@ class MoleculeLike:
             The change in the number of molecules left after expression/decay
         """
         dt = dt or 1
+        if from_count is None:
+            from_count = self.count
+
+        if from_count < 0:  # Log and correct if from_count is negative
+            logger.warning(f"Negative count detected for {self.name}. Correcting to 0.")
+            from_count = 0
+
+        # Randomly choose if something happens for each molecule
         count_diff = fast_random_occurrence(expression_rate, from_count)
         return count_diff
 
@@ -988,10 +1065,9 @@ class Complex(MoleculeLike):
         return formed_complexes, other_count_change
 
 
-def construct_path(path: Optional[str] = None) -> Path:
+def construct_path(path: Optional[str] = None, fname: Optional[str] = None) -> Path:
     """
-    Construct a file path for suimulation states.
-
+    Construct a file path for simulation states.
     If the path is not provided, the current working directory is used.
 
     Parameters
@@ -1004,7 +1080,7 @@ def construct_path(path: Optional[str] = None) -> Path:
 
     Returns
     -------
-    str
+    Path
         The constructed file path.
 
     Raises
@@ -1020,7 +1096,9 @@ def construct_path(path: Optional[str] = None) -> Path:
 
     if Path(path).suffix != ".yaml":
         raise ValueError("File must be a yaml file")
-    return path
+    return fpath
+
+
 
 
 @njit(parallel=True)
@@ -1046,6 +1124,7 @@ def fast_random_occurrence(
     int
         The total number of molecules that are expressed.
     """
+    
     # Precompute the cumulative probability
     cumulative_prob = 1 - expression_rate
     occurrences = np.zeros(from_count, dtype=np.int32)
@@ -1173,6 +1252,12 @@ def main() -> None:
     save = output_folder is not None
     trajectories = args_dict["trajectories"]
     steps = args_dict["steps"]
+    
+    # Input validation
+    if steps <= 0:
+        raise ValueError("Number of steps must be a positive integer.")
+    if trajectories <= 0:
+        raise ValueError("Number of trajectories must be a positive integer.")
 
     simulator = StateMachine(init_state_path=input_path)
     simulator.run(

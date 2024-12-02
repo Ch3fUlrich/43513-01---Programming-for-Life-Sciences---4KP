@@ -16,3 +16,4 @@ Repository.code-workspace
 *.pyo
 *.pyd
 *.log
+.DS_Store
