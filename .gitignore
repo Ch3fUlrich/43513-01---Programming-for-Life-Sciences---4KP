@@ -10,3 +10,4 @@ Repository.code-workspace
 *output
 .pytest_cache/
 .coverage
+.DS_Store
