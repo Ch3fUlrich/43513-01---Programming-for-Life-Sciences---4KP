@@ -44,6 +44,8 @@ After that, the required python packages must be installed before running the co
 One way to install all project dependencies is using pip:
 ```bash
 pip install -r requirements.txt
+# install own package
+pip install -e .
 # for development
 pip install -r requirements-dev.txt
 ```
