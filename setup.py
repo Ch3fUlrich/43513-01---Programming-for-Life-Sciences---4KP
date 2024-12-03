@@ -1,9 +1,16 @@
 from setuptools import setup, find_packages
+import os
 
 
-def parse_requirements(file):
-    with open(file) as f:
-        return [line.strip() for line in f if line.strip() and not line.startswith("#")]
+def parse_requirements(filename):
+    # Ensure the path is relative to the setup.py directory
+    here = os.path.abspath(os.path.dirname(__file__))
+    filepath = os.path.join(here, filename)
+    try:
+        with open(filepath) as f:
+            return f.read().splitlines()
+    except FileNotFoundError:
+        return []
 
 
 setup(
@@ -25,5 +32,4 @@ setup(
         "License :: OSI Approved :: MIT License",
         "Operating System :: OS Independent",
     ],
-    python_requires=">=3.10",
 )

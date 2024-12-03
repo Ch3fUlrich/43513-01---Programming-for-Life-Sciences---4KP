@@ -18,3 +18,4 @@ Repository.code-workspace
 *.log
 .DS_Store
 /Weeks
+/dist
