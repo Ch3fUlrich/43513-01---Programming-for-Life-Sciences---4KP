@@ -6,6 +6,13 @@ on:
     branches: [ main, github-workflow ]
   release:
     types: [published]
+  workflow_dispatch:
+    inputs:
+      example_input:
+        description: 'Manuall trigger for workflow'
+        required: false
+        default: 'default_value'
+    
 
 permissions:
   contents: read  
