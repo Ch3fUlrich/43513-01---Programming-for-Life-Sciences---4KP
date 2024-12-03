@@ -92,6 +92,8 @@ jobs:
         env:
           TWINE_USERNAME: __token__
           TWINE_PASSWORD: ${{ secrets.TEST_PYPI_API_TOKEN }}
+          TWINE_VERBOSE: true
+
 
       # Uncomment the following step to publish to PyPI after verifying TestPyPI
       #- name: Publish release distributions to PyPI
