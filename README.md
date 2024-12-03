@@ -9,13 +9,38 @@ This Repository is mandatory for the course mentioned in the title. Weekly lectu
 This project implements a Gillespie simulation of a microRNA-transcription factor-target protein feed-forward loop (FFL) in gene regulation. This stochastic simulation algorithm is used to model the time evolution of well-mixed biochemical systems.
 
 ## Usage
-### Define Initial State
+### Define Initial Parameters
 Before running the simulation, the initial parameters of the molecules that govern the dynamics of this biological system are defined and loaded. These parameters represent the starting state, rates (e.g., transcription, degradation, and formation, etc.), and interactions of the key molecular species in the system. 
 
 We have set a biologically meaningful and computationally stable state, which can be found in `./Project/states/initial_state.yaml`.
 
 Defining such states before each run of the simulation is crucial for simulation consistency and it ensures that the model produces accurate and reliable results.
+ 
  **IMPORTANT:** The naming must be the same as in the example file.
+
+### Parameters Description 
+Please refer to `./Unages/miRNA-interference_scheme.png` for a schematic of the FFL network being simulated.
+
+**Initial Time (time)**
+The simulation begins at time 0. Time is used to track the progression of events during the simulation.
+
+**Transcription Factor mRNA (TF_mRNA, w)**
+TF_mRNA is the precursor for the transcription factor protein (TF_protein). Its levels are governed by the rates of its synthesis (via transcription), its decay, and its translation into protein.
+
+**Transcription Factor Protein (TF_protein, q)**
+TF_protein regulates the transcription of both miRNA (s) and mRNA (r). Its count and decay rate directly affect the system's regulatory feedback loops.
+
+**miRNA (s)**
+miRNA regulates mRNA (r) through complex formation, influencing target protein (p) expression. Its transcription and decay rates define the strength and duration of its regulatory role.
+
+**mRNA (r)**
+mRNA encodes for the target protein (p). Its levels directly affect protein levels and are goverened by the rates of its synthesis, decay, and translation.
+
+**protein (p)**
+The target protein is the final output of the network. Its decay rate determines how quickly its levels respond to changesin regulatory inputs.
+
+**miRNA-mRNA Complex (g)**
+The complex results from the interaction between miRNA (s) and mRNA (r), which represses mRNA's translation into protein. The complex also dissociates back into miRNA and mRNA
 
 ### Run
 To run the simulation:
@@ -47,7 +72,7 @@ pip install -r requirements.txt
 # install own package
 pip install -e .
 # for development
-pip install -r requirements-dev.txt
+pip install -r requirements_dev.txt
 ```
 #### Option 2: conda environment
 Alternatively, a conda environment can be created, and all dependencies installed automatically using:
