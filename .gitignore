@@ -17,3 +17,4 @@ Repository.code-workspace
 *.pyd
 *.log
 .DS_Store
+/Weeks
