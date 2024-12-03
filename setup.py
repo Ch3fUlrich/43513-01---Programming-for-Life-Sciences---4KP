@@ -1,6 +1,7 @@
 from setuptools import setup, find_packages
 import os
 
+
 def parse_requirements(filename):
     # Ensure the path is relative to the setup.py directory
     here = os.path.abspath(os.path.dirname(__file__))
@@ -11,11 +12,12 @@ def parse_requirements(filename):
     except FileNotFoundError:
         return []
 
+
 with open("README.md", "r") as f:
     long_description = f.read()
 
 setup(
-    name="GillespieSimulation",
+    name="GillespieSimulation-pls2024",
     version="0.1.0",
     author="Sergej Maul",
     author_email="maulser@gmail.com",
