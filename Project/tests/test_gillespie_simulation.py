@@ -1,6 +1,6 @@
 import pytest
 import numpy as np
-from Project.GillespieSimulation import StateMachine, State, Molecule, Complex
+from Project.classes.State import StateMachine, State
 
 
 @pytest.fixture
