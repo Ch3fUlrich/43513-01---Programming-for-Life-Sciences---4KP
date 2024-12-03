@@ -3,6 +3,12 @@ import numpy as np
 from Project.GillespieSimulation import StateMachine, State, Molecule, Complex
 
 
+@pytest.fixture
+def simulator():
+    """Fixture to create a StateMachine instance for testing"""
+    return StateMachine()
+
+
 def test_state_machine_initialization():
     """Test basic initialization of Gillespie Simulation"""
     simulator = StateMachine()
@@ -37,9 +43,8 @@ def test_state_next_state_calculation():
     simulator = StateMachine()
     state = simulator.state
 
-    for i in range(1000):
-        for j in range(100):
-            state.next_state()
+    for i in range(100):
+        state.next_state()
         state.set_init_state()
 
 

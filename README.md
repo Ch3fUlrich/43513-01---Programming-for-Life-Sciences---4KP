@@ -7,9 +7,15 @@ This Repository is mandatory for the course mentioned in the title. Weekly lectu
 # Gillespie Simulation Project
 ## Synopsis
 This project implements a Gillespie simulation of a microRNA-transcription factor-target protein feed-forward loop (FFL) in gene regulation. This stochastic simulation algorithm is used to model the time evolution of well-mixed biochemical systems.
+
 ## Usage
 ### Define Initial State
-To be able to run the simulation you need to define the initial State of the system. An example can be found in `./Project/states/initial_state.yaml`. This file will be loaded by the simulation before running. **IMPORTANT:** The naming must be the same as in the example file.
+Before running the simulation, the initial parameters of the molecules that govern the dynamics of this biological system are defined and loaded. These parameters represent the starting state, rates (e.g., transcription, degradation, and formation, etc.), and interactions of the key molecular species in the system. 
+
+We have set a biologically meaningful and computationally stable state, which can be found in `./Project/states/initial_state.yaml`.
+
+Defining such states before each run of the simulation is crucial for simulation consistency and it ensures that the model produces accurate and reliable results.
+ **IMPORTANT:** The naming must be the same as in the example file.
 
 ### Run
 To run the simulation:
