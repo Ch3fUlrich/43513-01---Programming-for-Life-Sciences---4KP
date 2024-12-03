@@ -24,6 +24,14 @@ jobs:
           python -m pip install --upgrade pip
           pip install build pytest pytest-cov flake8 coverage
 
+      - name: Check for requirements.txt
+        run: |
+          if [ ! -f requirements.txt ]; then
+            echo "requirements.txt not found, please ensure it is committed to the repository."
+            exit 1
+          fi
+          echo "requirements.txt found"
+
       - name: Build release distributions
         run: |
           python -m build

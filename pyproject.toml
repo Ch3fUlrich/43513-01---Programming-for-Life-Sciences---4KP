@@ -16,10 +16,12 @@ authors = [
     {name = "Deniz Kaymak", email = "d.kaymak_6@hotmail.de"},
     {name = "Noa Bar Zohar", email = "noa.barzohar@unibas.ch"}
 ]
-dependencies = [] # defined in setup.py
+dependencies = [
+]
 
 [project.optional-dependencies]
-dev = [] # defined in setup.py
+dev = [
+]
 
 [tool.setuptools.packages.find]
 where = ["."]
