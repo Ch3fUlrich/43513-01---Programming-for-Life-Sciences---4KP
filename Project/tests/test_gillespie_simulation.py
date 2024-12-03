@@ -1,5 +1,4 @@
 import pytest
-import numpy as np
 from Project.classes.State import StateMachine, State
 
 

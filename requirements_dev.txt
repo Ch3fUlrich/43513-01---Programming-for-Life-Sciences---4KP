@@ -1,6 +1,9 @@
+build
 pytest
+pytest-cov
 coverage
 flake8
 flake8-docstrings
 mypy
 pylint
+numpy

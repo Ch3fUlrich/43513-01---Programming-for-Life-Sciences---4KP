@@ -19,3 +19,4 @@ Repository.code-workspace
 .DS_Store
 /Weeks
 /dist
+*coverage.xml
