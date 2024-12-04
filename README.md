@@ -19,7 +19,7 @@ Defining such states before each run of the simulation is crucial for simulation
  **IMPORTANT:** The naming must be the same as in the example file.
 
 ### Parameters Description 
-Please refer to `./Unages/miRNA-interference_scheme.png` for a schematic of the FFL network being simulated.
+Please refer to `./Images/miRNA-interference_scheme.png` for a schematic of the FFL network being simulated.
 
 **Initial Time (time)**
 The simulation begins at time 0. Time is used to track the progression of events during the simulation.
