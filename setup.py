@@ -13,13 +13,16 @@ def parse_requirements(filename):
         return []
 
 
+with open("README.md", "r") as f:
+    long_description = f.read()
+
 setup(
-    name="GillespieSimulation",
+    name="GillespieSimulation-pls2024",
     version="0.1.0",
     author="Sergej Maul",
     author_email="maulser@gmail.com",
     description="A package for simulating stochastic chemical reactions using the Gillespie algorithm.",
-    long_description=open("README.md").read(),
+    long_description=long_description,
     long_description_content_type="text/markdown",
     url="https://github.com/Ch3fUlrich/43513-01---Programming-for-Life-Sciences---4KP",
     packages=find_packages(include=["Project", "Project.*"]),
